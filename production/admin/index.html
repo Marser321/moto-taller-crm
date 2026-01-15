@@ -802,6 +802,64 @@
         </div>
     </div>
 
+    <!-- MODAL HISTORIAL CLIENTE -->
+    <div id="modal-historial"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="cerrarModalHistorial()" class="absolute right-4 top-4 text-zinc-500 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm">history</span>
+                </span>
+                Historial del Cliente
+            </h2>
+
+            <!-- Cliente Info -->
+            <div class="bg-black/30 p-4 rounded-xl border border-white/5 mb-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-lg" id="hist-nombre">---</h3>
+                        <p class="text-sm text-zinc-400" id="hist-telefono">---</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-zinc-500">Moto</p>
+                        <p class="font-bold text-white" id="hist-moto">---</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="bg-zinc-900/50 p-3 rounded-xl text-center border border-white/5">
+                    <p class="text-2xl font-black text-green-400" id="hist-total-gastado">$0</p>
+                    <p class="text-[10px] text-zinc-500 uppercase">Total Gastado</p>
+                </div>
+                <div class="bg-zinc-900/50 p-3 rounded-xl text-center border border-white/5">
+                    <p class="text-2xl font-black text-blue-400" id="hist-services">0</p>
+                    <p class="text-[10px] text-zinc-500 uppercase">Services</p>
+                </div>
+                <div class="bg-zinc-900/50 p-3 rounded-xl text-center border border-white/5">
+                    <p class="text-2xl font-black text-amber-400" id="hist-ultimo-service">---</p>
+                    <p class="text-[10px] text-zinc-500 uppercase">Último Service</p>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div>
+                <p class="text-xs font-bold text-zinc-500 uppercase mb-3">Historial de Servicios</p>
+                <div id="hist-timeline" class="space-y-3 max-h-64 overflow-y-auto">
+                    <!-- Items dinámicos -->
+                </div>
+                <div id="hist-vacio" class="text-center py-8 text-zinc-600 hidden">
+                    <span class="material-symbols-outlined text-3xl mb-2">inbox</span>
+                    <p>No hay registros para este cliente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL NUEVO CLIENTE -->
     <div id="modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-lg rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
@@ -1082,13 +1140,16 @@
                     </td>
                     <td class="p-4 text-right">
                         <div class="flex justify-end gap-2">
+                            <button onclick="verHistorialCliente('${c.id}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white p-2 rounded-lg transition text-lg" title="Ver Historial">
+                                📊
+                            </button>
                             <button onclick="abrirModalAuxilio(${i})" class="bg-orange-600 hover:bg-orange-500 text-white p-2 rounded-lg transition shadow-lg shadow-orange-900/30" title="Registrar Auxilio">
                                 🚚
                             </button>
                             <button onclick="abrirWhatsApp('${c.telefono}','${c.nombre}')" class="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg transition shadow-lg shadow-emerald-900/30 text-lg" title="WhatsApp">
                                 📱
                             </button>
-                            <button onclick="editarCliente(${i})" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white p-2 rounded-lg transition text-lg" title="Editar">
+                            <button onclick="editarCliente(${i})" class="bg-zinc-600/20 hover:bg-zinc-600 text-zinc-400 hover:text-white p-2 rounded-lg transition text-lg" title="Editar">
                                 ✏️
                             </button>
                             <button onclick="eliminarCliente(${i})" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white p-2 rounded-lg transition text-lg" title="Eliminar">
@@ -1266,6 +1327,126 @@
                     alert('Error al eliminar cliente: ' + e.message);
                 }
             }
+        }
+
+        // === HISTORIAL DE CLIENTE ===
+        async function verHistorialCliente(clienteId) {
+            const modal = document.getElementById('modal-historial');
+            const timeline = document.getElementById('hist-timeline');
+            const vacio = document.getElementById('hist-vacio');
+
+            // Buscar cliente
+            const cliente = clientes.find(c => c.id === clienteId);
+            if (!cliente) {
+                alert('Cliente no encontrado');
+                return;
+            }
+
+            // Mostrar info básica
+            document.getElementById('hist-nombre').textContent = cliente.nombre;
+            document.getElementById('hist-telefono').textContent = cliente.telefono;
+            document.getElementById('hist-moto').textContent = `${cliente.matricula || '---'} ${cliente.modelo || ''}`;
+
+            // Limpiar timeline
+            timeline.innerHTML = '<p class="text-center text-zinc-500 py-4">Cargando...</p>';
+            vacio.classList.add('hidden');
+            modal.classList.remove('hidden');
+
+            try {
+                // Buscar facturas del cliente por teléfono
+                const resFacturas = await fetch(`${SUPABASE_URL}/rest/v1/facturas?cliente_telefono=eq.${cliente.telefono}&select=*&order=created_at.desc`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                const facturasCliente = resFacturas.ok ? await resFacturas.json() : [];
+
+                // Buscar turnos del cliente
+                const resTurnos = await fetch(`${SUPABASE_URL}/rest/v1/turnos?cliente_telefono=eq.${cliente.telefono}&select=*&order=created_at.desc`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                const turnosCliente = resTurnos.ok ? await resTurnos.json() : [];
+
+                // Calcular stats
+                const totalGastado = facturasCliente.reduce((sum, f) => sum + (parseFloat(f.total) || 0), 0);
+                const totalServices = facturasCliente.length;
+                const ultimoService = facturasCliente.length > 0
+                    ? new Date(facturasCliente[0].created_at).toLocaleDateString()
+                    : '---';
+
+                document.getElementById('hist-total-gastado').textContent = `$${totalGastado.toLocaleString()}`;
+                document.getElementById('hist-services').textContent = totalServices;
+                document.getElementById('hist-ultimo-service').textContent = ultimoService;
+
+                // Renderizar timeline
+                timeline.innerHTML = '';
+
+                if (facturasCliente.length === 0 && turnosCliente.length === 0) {
+                    vacio.classList.remove('hidden');
+                } else {
+                    // Combinar y ordenar eventos
+                    const eventos = [];
+
+                    facturasCliente.forEach(f => {
+                        let itemsDesc = '';
+                        try {
+                            const items = typeof f.items === 'string' ? JSON.parse(f.items) : f.items;
+                            itemsDesc = Array.isArray(items) ? items.map(i => i.servicio || i.descripcion).join(', ') : f.items;
+                        } catch (e) { itemsDesc = f.items; }
+
+                        eventos.push({
+                            fecha: new Date(f.created_at),
+                            tipo: 'factura',
+                            titulo: 'Factura',
+                            descripcion: itemsDesc,
+                            monto: f.total,
+                            icon: 'receipt_long',
+                            color: 'green'
+                        });
+                    });
+
+                    turnosCliente.forEach(t => {
+                        if (t.estado === 'completed') {
+                            eventos.push({
+                                fecha: new Date(t.created_at),
+                                tipo: 'turno',
+                                titulo: t.servicio || 'Service',
+                                descripcion: `Estado: ${t.estado}`,
+                                monto: null,
+                                icon: 'build',
+                                color: 'blue'
+                            });
+                        }
+                    });
+
+                    // Ordenar por fecha descendente
+                    eventos.sort((a, b) => b.fecha - a.fecha);
+
+                    eventos.forEach(ev => {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-start gap-3 bg-black/30 p-3 rounded-xl border border-white/5';
+                        div.innerHTML = `
+                            <div class="w-8 h-8 rounded-full bg-${ev.color}-600/20 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-${ev.color}-500 text-sm">${ev.icon}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start">
+                                    <p class="font-bold text-sm text-white">${ev.titulo}</p>
+                                    <span class="text-xs text-zinc-500">${ev.fecha.toLocaleDateString()}</span>
+                                </div>
+                                <p class="text-xs text-zinc-400 truncate">${ev.descripcion}</p>
+                                ${ev.monto ? `<p class="text-sm font-bold text-green-400 mt-1">$${ev.monto}</p>` : ''}
+                            </div>
+                        `;
+                        timeline.appendChild(div);
+                    });
+                }
+            } catch (e) {
+                console.error('Error cargando historial', e);
+                timeline.innerHTML = '<p class="text-center text-red-500 py-4">Error cargando historial</p>';
+            }
+        }
+
+        function cerrarModalHistorial() {
+            document.getElementById('modal-historial').classList.add('hidden');
         }
 
         function eliminarDuplicados() {
