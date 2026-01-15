@@ -852,11 +852,13 @@
                     badge.className = 'w-full px-3 py-2 rounded-xl border flex items-center justify-between status-active mb-2';
                     badgeIcon.textContent = 'verified'; badgeText.textContent = 'Suscripción Activa';
                 }
-                document.getElementById('dias-restantes').textContent = `${dias} días restantes`; // Service Tracking const
-                nextServiceKm = cliente.km_last_service + cliente.km_interval; const kmRemaining = nextServiceKm -
-                    cliente.km_current; const kmProgressParam = ((cliente.km_current - cliente.km_last_service) /
-                        cliente.km_interval) * 100; document.getElementById('km-remaining').textContent = kmRemaining > 0 ? kmRemaining
-                            : 0;
+                document.getElementById('dias-restantes').textContent = `${dias} días restantes`;
+
+                // Service Tracking 
+                const nextServiceKm = cliente.km_last_service + cliente.km_interval;
+                const kmRemaining = nextServiceKm - cliente.km_current;
+                const kmProgressParam = ((cliente.km_current - cliente.km_last_service) / cliente.km_interval) * 100;
+                document.getElementById('km-remaining').textContent = kmRemaining > 0 ? kmRemaining : 0;
 
                 document.getElementById('km-current-display').textContent = `${cliente.km_current} km`;
                 document.getElementById('last-service-date').textContent = cliente.last_service_date;

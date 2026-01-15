@@ -79,6 +79,7 @@
             // Admin check
             if (phone === '099000000') {
                 localStorage.setItem('role', 'admin');
+                localStorage.setItem('phone', phone);
                 localStorage.setItem('userName', 'Administrador');
                 window.location.href = 'admin/index.html';
                 return;
