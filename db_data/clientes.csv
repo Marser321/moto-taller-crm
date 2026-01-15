@@ -1,0 +1,3 @@
+id,nombre,telefono,modelo,matricula,km_current,km_last_service,km_interval,oil_type,last_service_date,fecha_vencimiento,auxilios_total,auxilios_usados
+1,Juan Pérez,099123456,Honda CB 190R,SBU 1234,15200,14000,2500,Motul 5100 10W40,10/12/2024,2025-12-31,3,0
+2,María González,099654321,Yamaha FZ 25,ABC 5678,8500,7000,3000,Shell Advance 15W50,05/11/2024,2025-06-15,3,1

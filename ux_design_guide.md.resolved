@@ -1,0 +1,85 @@
+# Guía de Diseño Visual y UX - AppSheet (Estilo Moderno/Minimalista)
+
+Esta guía detalla cómo configurar la pestaña **UX** de AppSheet para lograr una interfaz limpia, profesional y fácil de usar.
+
+## 1. Branding y Tema (Dark Red Glass)
+Configuración para un look agresivo y moderno (Estilo Racing/Taller premium).
+
+*   **Theme:** `Dark Mode` (Obligatorio).
+*   **Primary Color:** `#EF4444` (Red 500) o `#DC2626` (Red 600).
+*   **Background Style:** Si es posible en la versión desktop, usar fondos oscuros con transparencias. En móvil AppSheet es limitado, pero simularemos con gris muy oscuro `#0F172A`.
+*   **Logo:** Blanco sobre transparente.
+
+## 2. Estrategia de Perfiles (Roles)
+
+Para diferenciar entre el Dueño y el Cliente, usaremos **Security Filters** y **Show_If**.
+
+### A. Vista Dueño (Admin)
+Debe ver TODO.
+*   **Acceso:** Email del dueño (ej. `admin@taller.com`).
+*   **Vistas Clave:** Dashboard Global, Lista Completa de Clientes, Configuración.
+
+### B. Vista Cliente (Usuario Final)
+Solo debe ver SU información.
+*   **Security Filter (Data > Tables > Security):**
+    *   En tabla `Vehiculos`: `[Cliente_Ref].[Email] = USEREMAIL()`
+    *   En tabla `Suscripciones`: `[Vehiculo_Ref].[Cliente_Ref].[Email] = USEREMAIL()`
+*   **Experiencia:** Al entrar, solo ve sus autos y sus saldos.
+
+---
+
+## 3. Estructura de Vistas (Views)
+
+Organiza la navegación en la barra inferior según el usuario.
+
+### A. Vista Principal: "Dashboard" (Solo Admin)
+*   **Show_If:** `USEREMAIL() = 'admin@taller.com'`
+*   **Contenido:** KPIs, Alertas de Vencimiento Globales.
+
+### B. Vista: "Mis Vehículos" (Cliente) -> Usar **Card View**
+*   **View Type:** Card.
+*   **Layout:** "List" (Tarjeta rectangular horizontal).
+*   **Title:** `Matricula`
+*   **Subtitle:** `Marca_Modelo`
+*   **Detail:** `Auxilios_Restantes` (Destacado).
+*   **Touch Action:** Al tocar, va al detalle o abre WhatsApp del taller.
+
+### C. Botón SOS (Cliente) -> **Action Button Gigante**
+En lugar de una vista, crea una **Action** flotante o destacada.
+*   **Action Name:** SOLICITAR AUXILIO.
+*   **Do this:** Open a URL / Goto View.
+*   **Prominence:** Display Overlay (Botón flotante en la esquina).
+*   **Icon:** `warning` (Rojo).
+
+---
+
+## 4. Reglas de Formato (Format Rules)
+El "maquillaje" de la app. Aquí aplicamos el minimalismo funcional.
+
+### Regla: Semáforo Visual
+Destaquemos el estado sin saturar.
+*   **Table:** Suscripciones.
+*   **Condition:** `[Semaforo_Visual] = "🟢 Activo"`
+*   **Format:**
+    *   **Icon:** `check_circle`
+    *   **Icon Color:** `#10B981` (Verde).
+    *   **Text Color:** Dejar default (blanco/negro) para no afectar legibilidad, o usar gris suave.
+
+### Regla: Vencidos
+*   **Table:** Suscripciones.
+*   **Condition:** `[Semaforo_Visual] = "🔴 Vencido"`
+*   **Format:**
+    *   **Icon:** `error_outline`
+    *   **Icon Color:** `#EF4444` (Rojo suave).
+    *   **Text Style:** **Bold**.
+
+### Regla: Títulos Grandes
+Para las vistas de detalle (Detail View).
+*   **Condition:** `TRUE` (Aplicar siempre a encabezados específicos).
+*   **Target:** Columnas clave como `Matricula` o `Nombre_Cliente`.
+*   **Format:**
+    *   **Text Size:** 1.2 (Un poco más grande).
+
+## 5. Detalles UX (Actions & Behaviors)
+*   **System Buttons:** Oculta botones de "Delete" o "Edit" en vistas donde no son primarios. Muevelos al menú de 3 puntos ("Display as: Overlay").
+*   **Acciones Rápidas:** Crea una acción `Enviar WhatsApp` y ponla como "Display inline" en la tarjeta del cliente para acceso a un toque (Solo Admin).

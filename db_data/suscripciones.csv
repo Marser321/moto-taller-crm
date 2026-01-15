@@ -1,0 +1,4 @@
+Suscripcion_ID,Vehiculo_Ref,Fecha_Inicio,Fecha_Fin,Limite_Km_Evento,Tope_Auxilios,Estado,Semaforo_Visual
+SUB_001,VEH_001,2024-01-01,2024-12-31,100,5,Activa,🟢 Activa
+SUB_002,VEH_002,2023-05-01,2024-05-01,100,3,Vencida,🔴 Vencida
+SUB_003,VEH_003,2024-03-15,2025-03-15,150,5,Activa,🟢 Activa

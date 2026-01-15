@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # 1. WEB APP CLIENTE (Nginx)
+  client-web:
+    image: nginx:alpine
+    container_name: taller_client_web
+    restart: unless-stopped
+    volumes:
+      - ./production:/usr/share/nginx/html
+    ports:
+      - "8081:80"
+    networks:
+      - taller_network
+
+  # 2. CEREBRO (n8n)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: taller_n8n
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5679/
+      - WHATSAPP_API_URL=http://whatsapp:3000/api/sendText
+      - WHATSAPP_SESSION=default
+      - N8N_ENDPOINT_WEBHOOK_CORS_ALLOW_ORIGIN=*
+      - N8N_ENDPOINT_REST_CORS_ALLOW_ORIGIN=*
+    ports:
+      - "5679:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./db_data:/data # Acceso a los CSVs locales
+    networks:
+      - taller_network
+  # 3. TÚNEL (Cloudflare)
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: taller_tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    networks:
+      - taller_network
+
+  # 4. WHATSAPP API (WAHA - WhatsApp HTTP API)
+  # Docs: https://waha.devlike.pro/
+  whatsapp:
+    image: devlikeapro/waha:latest
+    container_name: taller_whatsapp
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - WHATSAPP_HOOK_URL=http://n8n:5678/webhook/whatsapp-incoming
+      - WHATSAPP_HOOK_EVENTS=message
+    volumes:
+      - whatsapp_sessions:/app/.wwebjs_auth
+    networks:
+      - taller_network
+
+networks:
+  taller_network:
+    driver: bridge
+
+volumes:
+  n8n_data:
+  whatsapp_sessions:

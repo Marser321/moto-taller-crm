@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MotoCRM - Agenda Carbon Red Glass</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "carbon-black": "#0a0a0a",
+                        "carbon-dark": "#121212",
+                        "accent-red": "#e63946",
+                        "glass-red": "rgba(230, 57, 70, 0.1)",
+                        "primary": "#e63946",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .carbon-pattern {
+                background-color: #0a0a0a;
+                background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+                background-size: 10px 10px;
+            }
+            .glass-panel {
+                background: rgba(255, 255, 255, 0.03);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .glass-card-red {
+                background: rgba(230, 57, 70, 0.15);
+                backdrop-filter: blur(8px);
+                border-left: 4px solid #e63946;
+                box-shadow: 0 0 15px rgba(230, 57, 70, 0.2);
+            }
+            .glow-red {
+                box-shadow: 0 0 20px rgba(230, 57, 70, 0.4);
+                border: 1px solid rgba(230, 57, 70, 0.8);
+            }
+            .liquid-fill {
+                background: linear-gradient(180deg, #ff4d5a 0%, #9e1b24 100%);
+                position: relative;
+                overflow: hidden;
+            }
+            .liquid-fill::after {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: rgba(255,255,255,0.1);
+                border-radius: 40%;
+            }
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: 80px repeat(7, 1fr);
+                grid-auto-rows: minmax(60px, auto);
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="carbon-pattern font-display text-slate-100 antialiased overflow-hidden h-screen flex">
+<aside class="w-64 border-r border-white/10 bg-carbon-dark/80 backdrop-blur-md flex flex-col h-full z-30">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-accent-red size-10 rounded-lg flex items-center justify-center text-white shadow-[0_0_15px_rgba(230,57,70,0.5)]">
+<span class="material-symbols-outlined text-2xl">two_wheeler</span>
+</div>
+<div>
+<h1 class="text-lg font-black leading-none tracking-tight">MOTO<span class="text-accent-red">CRM</span></h1>
+<p class="text-[10px] text-accent-red font-bold uppercase tracking-[0.2em] mt-1">Carbon Edition</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1.5">
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 bg-accent-red/10 border border-accent-red/20 text-accent-red rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">calendar_today</span>
+<span class="text-sm font-bold">Calendario</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">groups</span>
+<span class="text-sm font-semibold">Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">card_membership</span>
+<span class="text-sm font-semibold">Membresías</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-xl">handyman</span>
+<span class="text-sm font-semibold">Taller</span>
+</a>
+</nav>
+<div class="p-4 border-t border-white/5">
+<button class="w-full bg-accent-red hover:bg-accent-red/90 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-accent-red/20">
+<span class="material-symbols-outlined">add_circle</span>
+<span>Nueva Cita</span>
+</button>
+<div class="mt-4 px-3 flex items-center gap-3 text-slate-500 hover:text-slate-300 cursor-pointer">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-sm font-medium">Ajustes</span>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0">
+<header class="h-16 border-b border-white/10 bg-carbon-dark/50 backdrop-blur-md px-6 flex items-center justify-between z-20">
+<div class="flex items-center gap-6 flex-1">
+<h2 class="text-xl font-bold tracking-tight text-white uppercase italic">Agenda de Citas</h2>
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:ring-1 focus:ring-accent-red/50 focus:border-accent-red/50 placeholder-slate-600 transition-all" placeholder="Buscar por placa, cliente o servicio..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 mr-4 text-[10px] font-black text-accent-red bg-accent-red/10 border border-accent-red/30 px-3 py-1.5 rounded-full uppercase tracking-widest">
+<span class="size-1.5 rounded-full bg-accent-red animate-pulse"></span>
+                8 Mecánicos en línea
+            </div>
+<button class="size-10 flex items-center justify-center rounded-lg hover:bg-white/5 text-slate-400 relative transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-accent-red rounded-full border-2 border-carbon-black"></span>
+</button>
+<div class="size-9 rounded-lg bg-cover bg-center border border-white/20 cursor-pointer" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCErs5-TN5doXVFO1kIM9s8w2AtJoKtvsoo9jmYwu1WzINudHV7yc3hs1a3L-cQLwxNxcfwL7rPurQYFlhnMwQMurDT8h3YBtWUzDYPzcA-tGMG1hTKUll3zzDsYkJ6kAjSDjAmk1o5np31-r_tsK-KeMOP0cc_BaF2e7fgg0bRw3BBjzMP2QgbZBe-VyNYQ8kQc0Etuuu7PxZZEWE5r7AT1pqFTKqImKGqfhNn5ABvR0EjN-XmxqpZAyGuVgUzqU9q6M9vC4X5R7Hx')"></div>
+</div>
+</header>
+<div class="p-6 flex-1 flex flex-col gap-6 overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-carbon-dark border border-white/10 rounded-lg p-1">
+<button class="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-white uppercase tracking-wider">Día</button>
+<button class="px-4 py-1.5 text-xs font-bold bg-accent-red text-white rounded shadow-sm uppercase tracking-wider">Semana</button>
+<button class="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-white uppercase tracking-wider">Mes</button>
+</div>
+<div class="flex items-center gap-3">
+<button class="size-8 flex items-center justify-center rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<h3 class="text-sm font-bold min-w-[180px] text-center text-white uppercase tracking-widest">Octubre 23 – 29</h3>
+<button class="size-8 flex items-center justify-center rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+<div class="flex items-center gap-2"><span class="size-2 rounded-sm bg-accent-red"></span> Motor</div>
+<div class="flex items-center gap-2"><span class="size-2 rounded-sm bg-slate-500"></span> Mant.</div>
+<div class="flex items-center gap-2"><span class="size-2 rounded-sm bg-blue-500"></span> Elec.</div>
+</div>
+</div>
+</div>
+<div class="flex-1 flex gap-6 overflow-hidden">
+<div class="flex-1 glass-panel rounded-xl overflow-y-auto scrollbar-hide relative border border-white/5">
+<div class="calendar-grid sticky top-0 z-20 bg-carbon-dark/90 backdrop-blur-md border-b border-white/10">
+<div class="h-12 flex items-center justify-center text-[10px] font-bold text-slate-600 border-r border-white/5">GMT-5</div>
+<div class="h-12 border-r border-white/5 flex flex-col items-center justify-center">
+<span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Lun 23</span>
+</div>
+<div class="h-12 border-r border-white/5 flex flex-col items-center justify-center">
+<span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Mar 24</span>
+</div>
+<div class="h-12 border-r border-white/5 flex flex-col items-center justify-center">
+<span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter text-accent-red">Mié 25</span>
+</div>
+<div class="h-12 border-r border-white/5 flex flex-col items-center justify-center bg-accent-red/5">
+<span class="text-[9px] font-bold text-accent-red uppercase tracking-tighter">Jue 26</span>
+</div>
+<div class="h-12 border-r border-white/5 flex flex-col items-center justify-center">
+<span class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Vie 27</span>
+</div>
+<div class="h-12 border-r border-white/5 flex flex-col items-center justify-center">
+<span class="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">Sáb 28</span>
+</div>
+<div class="h-12 flex flex-col items-center justify-center">
+<span class="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">Dom 29</span>
+</div>
+</div>
+<div class="calendar-grid relative">
+<div class="flex flex-col border-r border-white/5 bg-carbon-black/20">
+<div class="h-[60px] border-b border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-600">08:00</div>
+<div class="h-[60px] border-b border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-600">09:00</div>
+<div class="h-[60px] border-b border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-600">10:00</div>
+<div class="h-[60px] border-b border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-600">11:00</div>
+<div class="h-[60px] border-b border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-600">12:00</div>
+<div class="h-[60px] border-b border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-600">13:00</div>
+<div class="h-[60px] border-b border-white/5 flex items-center justify-center text-[10px] font-bold text-slate-600">14:00</div>
+</div>
+<div class="contents">
+<div class="border-b border-r border-white/5 relative group hover:bg-white/5 transition-colors"></div>
+<div class="border-b border-r border-white/5 relative group hover:bg-white/5 transition-colors">
+<div class="glass-card-red absolute inset-x-1 top-2 h-[110px] p-2 rounded-r flex flex-col z-10">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[8px] font-black bg-accent-red text-white px-1.5 py-0.5 rounded uppercase tracking-tighter">Motor</span>
+<span class="material-symbols-outlined text-xs text-accent-red">settings_input_component</span>
+</div>
+<h4 class="text-[11px] font-bold text-white truncate">Carlos Ruiz</h4>
+<p class="text-[9px] text-slate-400 font-medium">BMW R1250GS</p>
+<div class="mt-auto flex items-center gap-1.5 border-t border-white/10 pt-1">
+<div class="size-4 rounded-full bg-slate-800 border border-white/20"></div>
+<span class="text-[8px] text-slate-500">Mec: Mario P.</span>
+</div>
+</div>
+</div>
+<div class="border-b border-r border-white/5 relative group hover:bg-white/5 transition-colors">
+<div class="glass-card-red glow-red absolute inset-x-1 top-[130px] h-[90px] p-2 rounded-r flex flex-col z-20">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[8px] font-black bg-accent-red text-white px-1.5 py-0.5 rounded uppercase tracking-tighter">Alta Prioridad</span>
+<span class="material-symbols-outlined text-xs text-accent-red">bolt</span>
+</div>
+<h4 class="text-[11px] font-bold text-white">Sandro V.</h4>
+<p class="text-[9px] text-slate-400">Ducati V4</p>
+</div>
+</div>
+<div class="border-b border-r border-white/5 bg-accent-red/5 relative"></div>
+<div class="border-b border-r border-white/5 relative"></div>
+<div class="border-b border-r border-white/5 bg-white/5 relative"></div>
+<div class="border-b border-white/5 bg-white/5 relative"></div>
+</div>
+</div>
+<div class="absolute top-40 left-1/2 -translate-x-1/2 w-72 glass-panel glow-red rounded-xl p-5 z-50 border-accent-red/50">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="text-[10px] font-black text-accent-red uppercase tracking-widest block mb-1">Detalle de Cita</span>
+<h4 class="text-lg font-black text-white leading-none">Diagnóstico EFI</h4>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+<div class="space-y-3 mb-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-accent-red">person</span>
+</div>
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold">Cliente</p>
+<p class="text-xs font-bold text-white">Juan Pablo Montoya</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-accent-red">motorcycle</span>
+</div>
+<div>
+<p class="text-[10px] text-slate-500 uppercase font-bold">Moto</p>
+<p class="text-xs font-bold text-white">Yamaha MT-09 (2022)</p>
+</div>
+</div>
+</div>
+<button class="w-full bg-accent-red text-white py-2.5 rounded font-black text-xs uppercase tracking-widest shadow-lg shadow-accent-red/30 active:scale-[0.98] transition-transform">
+                        Gestionar Servicio
+                    </button>
+</div>
+</div>
+<aside class="w-80 flex flex-col gap-4 h-full">
+<div class="glass-panel rounded-xl flex-1 flex flex-col min-h-0 border-white/5">
+<div class="p-4 border-b border-white/5 flex items-center justify-between">
+<h3 class="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Queue <span class="text-accent-red">(5)</span></h3>
+<span class="material-symbols-outlined text-slate-600">sort</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide">
+<div class="p-3 bg-white/5 border border-white/10 rounded-lg cursor-grab active:cursor-grabbing hover:border-accent-red/40 transition-all">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[9px] font-bold text-accent-red uppercase tracking-widest">Mantenimiento</span>
+<span class="text-[8px] text-slate-600 font-bold uppercase">hace 2h</span>
+</div>
+<h4 class="text-sm font-bold text-white">Roberto Gómez</h4>
+<p class="text-xs text-slate-500 mb-3">Kawasaki Ninja 400</p>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border border-carbon-black bg-slate-800"></div>
+<div class="size-6 rounded-full border border-carbon-black bg-slate-700"></div>
+</div>
+<span class="text-[10px] font-bold text-accent-red underline underline-offset-4 decoration-accent-red/30">Asignar</span>
+</div>
+</div>
+<div class="p-3 bg-white/5 border border-white/10 rounded-lg opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+<h4 class="text-sm font-bold text-white">Andrea S.</h4>
+<p class="text-xs text-slate-500">Triumph Bonneville</p>
+</div>
+</div>
+</div>
+<div class="glass-panel rounded-xl p-5 border-white/10">
+<div class="flex items-center justify-between mb-4">
+<h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Capacidad Operativa</h4>
+<span class="material-symbols-outlined text-accent-red text-sm">water_drop</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative w-14 h-24 bg-carbon-black rounded-xl border border-white/10 overflow-hidden">
+<div class="liquid-fill absolute bottom-0 w-full h-[74%] flex items-center justify-center">
+<div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+</div>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-xs font-black text-white drop-shadow-md">74%</span>
+</div>
+</div>
+<div class="flex-1">
+<p class="text-2xl font-black text-white italic">12/16</p>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Slots Ocupados</p>
+<div class="mt-4 flex gap-1">
+<div class="h-1 flex-1 bg-accent-red rounded-full"></div>
+<div class="h-1 flex-1 bg-accent-red rounded-full"></div>
+<div class="h-1 flex-1 bg-accent-red rounded-full"></div>
+<div class="h-1 flex-1 bg-white/10 rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+<div class="fixed bottom-6 right-6 z-50">
+<button class="bg-carbon-dark border border-white/10 text-white size-14 rounded-xl flex items-center justify-center shadow-2xl hover:scale-105 hover:bg-accent-red/10 transition-all group">
+<span class="material-symbols-outlined text-2xl group-hover:text-accent-red transition-colors">support_agent</span>
+</button>
+</div>
+
+</body></html>

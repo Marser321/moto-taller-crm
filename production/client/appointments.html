@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar Turno - Moto Taller</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="design-system.css">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "carbon-black": "#0a0a0a",
+                        "carbon-dark": "#121212",
+                        "accent-red": "#e63946",
+                        "glass-red": "rgba(230, 57, 70, 0.1)",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e63946">
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #0a0a0a;
+            background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+            background-size: 10px 10px;
+            color: #f1f5f9;
+            padding-bottom: 2rem;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+        .glass {
+            background: rgba(20, 20, 20, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .selected-slot {
+            background: #dc2626 !important;
+            /* red-600 */
+            border-color: #fca5a5 !important;
+            color: white !important;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
+            transform: scale(1.05);
+        }
+
+        .selected-service {
+            border-color: #ef4444;
+            background: linear-gradient(145deg, rgba(220, 38, 38, 0.2), rgba(0, 0, 0, 0.6));
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Calendar simple styling */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .calendar-wrapper {
+            perspective: 1000px;
+        }
+
+        .calendar-day {
+            width: 50px;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.4s ease-out backwards;
+        }
+
+        .calendar-day::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #ef4444;
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.active {
+            background: #b91c1c;
+            border-color: #ef4444;
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 10px 20px -5px rgba(220, 38, 38, 0.4);
+            z-index: 10;
+        }
+
+        .calendar-day.active::after {
+            transform: scaleX(1);
+        }
+
+        .calendar-day.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .slot-btn {
+            animation: fadeInUp 0.3s ease-out backwards;
+        }
+
+        /* EXTRA AESTHETICS */
+        .bolt {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(145deg, #71717a, #3f3f46);
+            border-radius: 50%;
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
+
+        .bolt::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 60%;
+            height: 15%;
+            background: #18181b;
+        }
+    </style>
+</head>
+
+<body class="max-w-md mx-auto min-h-screen relative p-5 pb-32">
+
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-8">
+        <a href="index.html"
+            class="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition backdrop-blur-sm">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h1 class="text-2xl font-black italic uppercase tracking-wider">Agendar Turno</h1>
+    </div>
+
+    <!-- MIS TURNOS -->
+    <div id="mis-turnos-section" class="mb-8 hidden">
+        <h2
+            class="text-xs uppercase text-zinc-500 font-bold mb-4 tracking-widest border-b border-white/10 pb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-red-500">event_note</span>
+            Mis Turnos Pendientes
+        </h2>
+        <div id="mis-turnos-list" class="space-y-3">
+            <!-- Turnos se cargan aquí -->
+        </div>
+    </div>
+
+    <!-- 1. Select Service -->
+    <div class="mb-8 animate-slide-up" style="animation-duration: 0.3s">
+        <h2 class="text-xs uppercase text-zinc-500 font-bold mb-4 tracking-widest border-b border-white/10 pb-2">1.
+            Selecciona Servicio</h2>
+        <div class="space-y-3">
+            <div onclick="selectService(this, 'service-basic')"
+                class="service-card border border-white/10 bg-black/40 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:border-white/20 transition group relative overflow-hidden">
+                <div class="bolt top-2 left-2"></div>
+                <div class="bolt bottom-2 right-2"></div>
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-lg bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-400 group-hover:text-white transition">
+                        <span class="material-symbols-outlined">settings</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Service 3.000 km</h3>
+                        <p class="text-xs text-zinc-500 group-hover:text-zinc-400 transition">Aceite + Filtro + Cadena
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="block font-bold text-lg">$2.500</span>
+                    <span class="text-xs text-zinc-500 font-mono">60 min</span>
+                </div>
+            </div>
+
+            <div onclick="selectService(this, 'oil-change')"
+                class="service-card border border-white/10 bg-black/40 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:border-white/20 transition group relative overflow-hidden">
+                <div class="bolt top-2 left-2"></div>
+                <div class="bolt bottom-2 right-2"></div>
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-lg bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-400 group-hover:text-white transition">
+                        <span class="material-symbols-outlined">opacity</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Cambio Aceite</h3>
+                        <p class="text-xs text-zinc-500 group-hover:text-zinc-400 transition">Motul 5100 / Yamalube</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="block font-bold text-lg">$1.800</span>
+                    <span class="text-xs text-zinc-500 font-mono">30 min</span>
+                </div>
+            </div>
+
+            <div onclick="selectService(this, 'repair')"
+                class="service-card border border-white/10 bg-black/40 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:border-white/20 transition group relative overflow-hidden">
+                <div class="bolt top-2 left-2"></div>
+                <div class="bolt bottom-2 right-2"></div>
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-lg bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-400 group-hover:text-white transition">
+                        <span class="material-symbols-outlined">handyman</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Taller General</h3>
+                        <p class="text-xs text-zinc-500 group-hover:text-zinc-400 transition">Diagnóstico y Reparación
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="block font-bold text-lg italic text-zinc-600">COTIZAR</span>
+                    <span class="text-xs text-zinc-500 font-mono">---</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Select Date -->
+    <div class="mb-8 hidden" id="step-date">
+        <h2 class="text-xs uppercase text-zinc-500 font-bold mb-4 tracking-widest border-b border-white/10 pb-2">2.
+            Elige una fecha</h2>
+        <!-- Horizontal Scroll Calendar -->
+        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar" id="calendar-container">
+            <!-- JS Injected -->
+        </div>
+
+        <div class="mt-4 grid grid-cols-3 gap-3" id="slots-container">
+            <!-- JS Injected -->
+        </div>
+    </div>
+
+
+    <!-- Confirm Button -->
+    <!-- Confirm Button -->
+    <div
+        class="fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-md p-5 bg-gradient-to-t from-black to-transparent space-y-3 z-40 rounded-t-2xl pointer-events-none">
+        <button onclick="confirmAppt()" id="btn-confirm" disabled
+            class="w-full bg-zinc-800 text-zinc-500 font-bold py-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed shadow-xl pointer-events-auto">
+            Confirmar Turno
+        </button>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6 hidden">
+        <div class="w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-8 text-center space-y-6">
+            <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+                <span class="material-symbols-outlined text-4xl text-green-500">check_circle</span>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-white">¡Turno Agendado!</h2>
+                <p class="text-zinc-400 mt-2 text-sm">Te esperamos el <span id="conf-date"
+                        class="text-white font-bold">---</span> a las <span id="conf-time"
+                        class="text-white font-bold">---</span>.</p>
+            </div>
+            <button onclick="window.location.href='index.html'"
+                class="w-full bg-white text-black font-bold py-3 rounded-xl">
+                Volver al Inicio
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // SUPABASE CONFIG
+        const SUPABASE_URL = 'https://wygkeihgmolampvaonpr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5Z2tlaWhnbW9sYW1wdmFvbnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTE5MTgsImV4cCI6MjA4NDAyNzkxOH0.kJiWLnzcTz2Wj6BoyOfJl19ovMmVc2_xvyhFABtqq_0';
+
+        // === STATE ===
+        let selectedService = null;
+        let selectedDate = null;
+        let selectedTime = null;
+
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+        // === HELPERS ===
+        function getServiceName(id) {
+            const names = {
+                'service-basic': 'Service 3.000 km',
+                'oil-change': 'Cambio de Aceite',
+                'repair': 'Reparación General'
+            };
+            return names[id] || 'Servicio General';
+        }
+
+        async function getBookedSlots(date) {
+            // Need to fetch latest turnos to know what's booked
+            // We can rely on local cache 'turnos_kanban' which should be synced on load
+            const turnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
+            const dateStr = `${date.getDate()} ${months[date.getMonth()]}`;
+
+            return turnos
+                .filter(t => t.fecha && t.fecha.startsWith(dateStr) && t.estado !== 'cancelled')
+                .map(t => {
+                    // Format "15 Ene - 10:00" -> "10:00"
+                    return t.fecha.split(' - ')[1]?.trim();
+                });
+        }
+
+        // === UI FUNCTIONS ===
+        async function initCalendar() {
+            const container = document.getElementById('calendar-container');
+            container.innerHTML = '';
+            const today = new Date();
+
+            for (let i = 0; i < 14; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+
+                // Skip Sundays
+                if (date.getDay() === 0) continue;
+
+                const dayName = days[date.getDay()];
+                const dayNum = date.getDate();
+
+                const el = document.createElement('div');
+                el.className = 'calendar-day flex-shrink-0';
+                el.style.animationDelay = `${i * 0.05}s`;
+                el.innerHTML = `<span class="text-[10px] uppercase tracking-wider opacity-60">${dayName}</span><span class="text-xl font-bold font-mono">${dayNum}</span>`;
+
+                el.onclick = () => {
+                    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('active'));
+                    el.classList.add('active');
+                    selectedDate = date;
+                    renderSlots();
+                    checkForm();
+                };
+                container.appendChild(el);
+            }
+        }
+
+        async function renderSlots() {
+            const container = document.getElementById('slots-container');
+            container.innerHTML = '<div class="col-span-3 text-center text-xs text-zinc-500 animate-pulse">Cargando cupos...</div>';
+
+            if (!selectedDate) return;
+
+            // small delay to simulate processing or allow async fetch if we needed it fresh
+            await new Promise(r => setTimeout(r, 200));
+            container.innerHTML = '';
+
+            const booked = await getBookedSlots(selectedDate);
+            // Default slots
+            const slots = ['09:00', '10:00', '11:30', '14:00', '15:30', '17:00'];
+
+            slots.forEach((time, index) => {
+                const isBooked = booked.includes(time);
+                const btn = document.createElement('button');
+
+                if (isBooked) {
+                    btn.className = 'py-4 rounded-xl border text-lg font-bold font-mono transition slot-btn bg-zinc-900 border-zinc-800 text-zinc-700 cursor-not-allowed opacity-50';
+                    btn.disabled = true;
+                    btn.innerHTML = `<span class="line-through">${time}</span><br><span class="text-[8px] uppercase text-red-900">Ocupado</span>`;
+                } else {
+                    btn.className = 'py-4 rounded-xl border text-lg font-bold font-mono transition slot-btn bg-black/40 border-white/10 text-zinc-400 hover:border-white/30 hover:text-white';
+                    btn.innerHTML = `<span>${time}</span>`;
+                    btn.onclick = () => {
+                        document.querySelectorAll('.slot-btn').forEach(b => {
+                            b.classList.remove('selected-slot');
+                            if (!b.disabled) b.classList.add('bg-black/40', 'text-zinc-400');
+                        });
+                        btn.classList.remove('bg-black/40', 'text-zinc-400');
+                        btn.classList.add('selected-slot');
+                        selectedTime = time;
+                        checkForm();
+                    };
+                }
+                btn.style.animationDelay = `${index * 0.1}s`;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectService(el, id) {
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected-service'));
+            el.classList.add('selected-service');
+            selectedService = id;
+
+            const stepDate = document.getElementById('step-date');
+            if (stepDate.classList.contains('hidden')) {
+                stepDate.classList.remove('hidden');
+                stepDate.classList.add('animate-slide-up');
+            }
+
+            checkForm();
+
+            // Auto Scroll to Date Step
+            setTimeout(() => {
+                stepDate.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+
+        function checkForm() {
+            const btn = document.getElementById('btn-confirm');
+            if (selectedService && selectedDate && selectedTime) {
+                btn.disabled = false;
+                btn.className = 'w-full bg-red-600 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-red-900/40 pointer-events-auto';
+            } else {
+                btn.disabled = true;
+                btn.className = 'w-full bg-zinc-800 text-zinc-500 font-bold py-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto';
+            }
+        }
+
+        async function confirmAppt() {
+            // Disable button
+            const btn = document.getElementById('btn-confirm');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Procesando...';
+
+            const dateStr = `${selectedDate.getDate()} ${months[selectedDate.getMonth()]}`;
+            document.getElementById('conf-date').textContent = dateStr;
+            document.getElementById('conf-time').textContent = selectedTime;
+
+            const newTicket = {
+                cliente_telefono: localStorage.getItem('phone') || '00000',
+                cliente_nombre: localStorage.getItem('userName') || 'Cliente App',
+                moto: localStorage.getItem('userMoto') || 'Moto Registrada',
+                servicio: getServiceName(selectedService),
+                fecha: `${dateStr} - ${selectedTime}`,
+                estado: 'requested'
+            };
+
+            // POST to Supabase
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(newTicket)
+                });
+
+                if (!res.ok) throw new Error('Supabase Error');
+
+                // Success
+                document.getElementById('success-modal').classList.remove('hidden');
+
+                // Refresh local cache with the new ticket
+                await syncTurnos();
+
+            } catch (err) {
+                console.warn('Supabase offline or failed', err);
+                alert("Error de conexión. Se guardará localmente (Demo mode).");
+
+                // Local Fallback
+                const turnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
+                turnos.push({ ...newTicket, id: 't_' + Date.now() });
+                localStorage.setItem('turnos_kanban', JSON.stringify(turnos));
+
+                document.getElementById('success-modal').classList.remove('hidden');
+            }
+        }
+
+        async function syncTurnos() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        localStorage.setItem('turnos_kanban', JSON.stringify(data));
+                    }
+                }
+            } catch (e) { console.warn('Supabase offline, using local cache'); }
+        }
+
+        // === INIT ===
+        document.addEventListener('DOMContentLoaded', async () => {
+            await syncTurnos();
+            initCalendar();
+
+            // Legacy "Mis Turnos" button removed in favor of Bottom Nav
+
+            // AUTO-SELECT "COTIZAR" (Taller General) if param exists
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('service') === 'cotizar') {
+                // Assuming Taller General is index 2 (based on HTML)
+                const cards = document.querySelectorAll('.service-card');
+                if (cards[2]) cards[2].click();
+            }
+        });
+
+        // SOS Handler for Appointments Page
+        function handleSOS() {
+            const user = localStorage.getItem('userName') || 'Usuario';
+            const moto = localStorage.getItem('userMoto') || 'Moto N/A';
+            const text = `🚨 *ALERTA SOS* 🚨\n\nSoy ${user} (${moto}).\nNecesito asistencia inmediata por favor.`;
+            window.open(`https://wa.me/59899123456?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => console.log('SW Registered'))
+                    .catch(err => console.log('SW Failed:', err));
+            });
+        }
+
+        // === MIS TURNOS ===
+        async function cargarMisTurnos() {
+            const telefono = localStorage.getItem('phone');
+            if (!telefono) return;
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos?select=*&or=(cliente_telefono.eq.${telefono},estado.neq.completed)&order=created_at.desc`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+
+                if (res.ok) {
+                    const turnos = await res.json();
+                    const misTurnos = turnos.filter(t => t.estado !== 'completed' && t.estado !== 'cancelled');
+
+                    if (misTurnos.length > 0) {
+                        document.getElementById('mis-turnos-section').classList.remove('hidden');
+                        const container = document.getElementById('mis-turnos-list');
+                        container.innerHTML = misTurnos.map(t => `
+                            <div class="glass p-4 rounded-xl flex justify-between items-center border border-white/10">
+                                <div>
+                                    <p class="font-bold text-white">${t.servicio}</p>
+                                    <p class="text-xs text-zinc-400">${t.fecha}</p>
+                                    <span class="text-xs px-2 py-0.5 rounded ${t.estado === 'confirmed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}">
+                                        ${t.estado === 'confirmed' ? 'Confirmado' : 'Pendiente'}
+                                    </span>
+                                </div>
+                                <button onclick="cancelarTurno('${t.id}')" class="bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-3 py-2 rounded-lg text-xs font-bold transition">
+                                    Cancelar
+                                </button>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (e) { console.warn('Error cargando turnos', e); }
+        }
+
+        async function cancelarTurno(id) {
+            if (!confirm('¿Seguro que quieres cancelar este turno?')) return;
+
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/turnos?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                alert('✅ Turno cancelado');
+                cargarMisTurnos();
+            } catch (e) {
+                console.error('Error cancelando', e);
+                alert('Error al cancelar turno');
+            }
+        }
+
+        // Cargar turnos al inicio
+        cargarMisTurnos();
+    </script>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav
+        class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 glass border-t border-white/10 pb-safe pt-2 px-6 flex justify-between items-end backdrop-blur-xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] h-20 rounded-t-2xl">
+        <!-- Home -->
+        <button onclick="window.location.href='index.html'"
+            class="flex flex-col items-center gap-1 group w-12 pb-3 relative">
+            <span
+                class="material-symbols-outlined text-zinc-400 text-2xl group-hover:text-red-500 transition-colors">home</span>
+            <span
+                class="text-[10px] uppercase font-bold text-zinc-500 group-hover:text-white transition-colors">Inicio</span>
+        </button>
+
+        <!-- Turnos (Active) -->
+        <button onclick="window.location.href='appointments.html'"
+            class="flex flex-col items-center gap-1 group w-12 pb-3 relative">
+            <span class="material-symbols-outlined text-red-500 text-2xl transition-colors">event_note</span>
+            <span class="text-[10px] uppercase font-bold text-white transition-colors">Turnos</span>
+            <div class="absolute -top-2 w-8 h-1 bg-red-500 rounded-b-full shadow-[0_0_10px_red]"></div>
+        </button>
+
+        <!-- SOS (Floating) -->
+        <button onclick="handleSOS()" class="relative -top-6 group btn-press">
+            <div
+                class="w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.5)] border-4 border-[#121212] group-hover:scale-105 transition-transform duration-300">
+                <span class="material-symbols-outlined text-white text-3xl animate-pulse">sos</span>
+            </div>
+            <span
+                class="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-wider text-red-500">SOS</span>
+        </button>
+
+        <!-- Mi Moto -->
+        <button onclick="window.location.href='index.html'"
+            class="flex flex-col items-center gap-1 group w-12 pb-3 relative">
+            <span
+                class="material-symbols-outlined text-zinc-400 text-2xl group-hover:text-red-500 transition-colors">two_wheeler</span>
+            <span
+                class="text-[10px] uppercase font-bold text-zinc-500 group-hover:text-white transition-colors">Moto</span>
+        </button>
+
+        <!-- Perfil -->
+        <button onclick="window.location.href='index.html'"
+            class="flex flex-col items-center gap-1 group w-12 pb-3 relative">
+            <span
+                class="material-symbols-outlined text-zinc-400 text-2xl group-hover:text-red-500 transition-colors">person</span>
+            <span
+                class="text-[10px] uppercase font-bold text-zinc-500 group-hover:text-white transition-colors">Perfil</span>
+        </button>
+    </nav>
+</body>
+
+</html>

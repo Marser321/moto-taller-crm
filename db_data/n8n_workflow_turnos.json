@@ -1,0 +1,140 @@
+{
+    "name": "API Turnos - CRUD (Fix)",
+    "active": true,
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "={{$json.method}}",
+                "path": "api/turnos",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-turnos",
+            "name": "Webhook Turnos",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                100,
+                300
+            ],
+            "webhookId": "api-turnos"
+        },
+        {
+            "parameters": {
+                "operation": "read",
+                "filePath": "/data/turnos.csv",
+                "options": {}
+            },
+            "id": "read-csv-turnos",
+            "name": "Read CSV",
+            "type": "n8n-nodes-base.readWriteFile",
+            "typeVersion": 1,
+            "position": [
+                300,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const method = $('Webhook Turnos').first().json.method;\nconst csvData = $input.first().binary.data;\nconst csvText = Buffer.from(csvData, 'base64').toString('utf8');\n\nif (method === 'GET') {\n  // --- GET Logic ---\n  const lines = csvText.trim().split('\\n');\n  const headers = lines[0].split(',');\n  const data = lines.slice(1).map(line => {\n    const values = line.split(',');\n    const obj = {};\n    headers.forEach((h, i) => obj[h.trim()] = values[i]?.trim() || '');\n    return obj;\n  });\n  return data.map(item => ({ json: item }));\n\n} else if (method === 'POST') {\n  // --- POST Logic ---\n  const body = $('Webhook Turnos').first().json.body;\n  // Append to CSV string\n  // Header: id,cliente_telefono,cliente_nombre,moto,servicio,fecha,estado,created_at\n  const newLine = [\n    body.id,\n    body.cliente_telefono || '',\n    body.cliente_nombre || '',\n    body.moto || '',\n    body.servicio || '',\n    body.fecha || '',\n    'requested',\n    new Date().toISOString()\n  ].join(',') + '\\n';\n  \n  const newCsv = csvText.endsWith('\\n') ? csvText + newLine : csvText + '\\n' + newLine;\n  \n  // Return binary for writing\n  return [{\n    json: { success: true, message: 'Turno saved' },\n    binary: {\n      data: Buffer.from(newCsv).toString('base64'),\n      mimeType: 'text/csv',\n      fileExtension: 'csv',\n      fileName: 'turnos.csv'\n    }\n  }];\n}\n\nreturn { json: { error: 'Method not supported' } };"
+            },
+            "id": "process-data",
+            "name": "Process Data",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                500,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "write",
+                "filePath": "/data/turnos.csv",
+                "options": {}
+            },
+            "id": "write-csv-turnos",
+            "name": "Write CSV",
+            "type": "n8n-nodes-base.readWriteFile",
+            "typeVersion": 1,
+            "position": [
+                700,
+                400
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}"
+            },
+            "id": "respond-turnos",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "dataType": "string",
+                "value1": "={{ $('Webhook Turnos').first().json.method }}",
+                "rules": {
+                    "rules": [
+                        {
+                            "value2": "POST"
+                        },
+                        {
+                            "value2": "GET"
+                        }
+                    ]
+                }
+            },
+            "id": "switch-method",
+            "name": "Switch Method",
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 1,
+            "position": [
+                650,
+                200
+            ],
+            "disabled": true
+        }
+    ],
+    "connections": {
+        "Webhook Turnos": {
+            "main": [
+                [
+                    {
+                        "node": "Read CSV",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read CSV": {
+            "main": [
+                [
+                    {
+                        "node": "Process Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process Data": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

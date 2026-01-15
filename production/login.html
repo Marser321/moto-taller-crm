@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso - Moto Taller</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <script>
+        // SUPABASE CONFIG
+        const SUPABASE_URL = 'https://wygkeihgmolampvaonpr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5Z2tlaWhnbW9sYW1wdmFvbnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTE5MTgsImV4cCI6MjA4NDAyNzkxOH0.kJiWLnzcTz2Wj6BoyOfJl19ovMmVc2_xvyhFABtqq_0';
+
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "carbon-black": "#0a0a0a",
+                        "carbon-dark": "#121212",
+                        "accent-red": "#e63946",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #0a0a0a;
+            background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+            background-size: 10px 10px;
+            color: white;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="h-screen flex items-center justify-center p-6 relative">
+
+    <div class="glass w-full max-w-sm p-8 rounded-3xl relative z-10 text-center shadow-2xl shadow-red-900/20">
+        <div
+            class="w-16 h-16 bg-accent-red rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_25px_rgba(230,57,70,0.5)]">
+            <span class="material-symbols-outlined text-white text-3xl">lock</span>
+        </div>
+
+        <h1 class="text-2xl font-bold mb-2">Moto <span class="text-accent-red">Taller</span></h1>
+        <p class="text-zinc-400 text-sm mb-8">Ingresa tu celular para acceder</p>
+
+        <input type="tel" id="phone" placeholder="099 123 456"
+            class="w-full bg-black/50 border border-white/10 rounded-xl p-4 text-center text-xl tracking-widest mb-6 focus:border-accent-red focus:ring-1 focus:ring-accent-red/50 outline-none transition placeholder:text-zinc-600 font-mono">
+
+        <button onclick="login()" id="btn-login"
+            class="w-full bg-gradient-to-r from-accent-red to-red-700 text-white font-bold py-4 rounded-xl hover:shadow-[0_0_25px_rgba(230,57,70,0.4)] transition transform active:scale-95 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">login</span>
+            INGRESAR
+        </button>
+    </div>
+
+    <script>
+        async function login() {
+            const phone = document.getElementById('phone').value.replace(/\D/g, '');
+            const btn = document.getElementById('btn-login');
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Verificando...';
+            btn.disabled = true;
+
+            // Admin check
+            if (phone === '099000000') {
+                localStorage.setItem('role', 'admin');
+                localStorage.setItem('userName', 'Administrador');
+                window.location.href = 'admin/index.html';
+                return;
+            }
+
+            if (phone.length < 6) {
+                alert("Número inválido");
+                btn.innerHTML = '<span class="material-symbols-outlined">login</span> INGRESAR';
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                // Query Supabase for client by phone
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?telefono=eq.${phone}&select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+
+                const data = await res.json();
+
+                if (data && data.length > 0) {
+                    const cliente = data[0];
+                    localStorage.setItem('role', 'client');
+                    localStorage.setItem('phone', phone);
+                    localStorage.setItem('userName', cliente.nombre);
+                    localStorage.setItem('userMoto', cliente.matricula + ' - ' + (cliente.modelo || 'Moto'));
+                    window.location.href = 'client/index.html';
+                } else {
+                    // Allow new users with demo data
+                    localStorage.setItem('role', 'client');
+                    localStorage.setItem('phone', phone);
+                    localStorage.setItem('userName', 'Usuario');
+                    localStorage.setItem('userMoto', 'Sin moto registrada');
+                    window.location.href = 'client/index.html';
+                }
+            } catch (e) {
+                console.error('Error de conexión', e);
+                // Fallback to local
+                localStorage.setItem('role', 'client');
+                localStorage.setItem('phone', phone);
+                window.location.href = 'client/index.html';
+            }
+        }
+
+        document.getElementById('phone').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOS Auxilio Mecánico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-900 text-white flex flex-col items-center justify-center h-screen p-4 overflow-hidden relative">
+
+    <!-- Background Pulse Animation -->
+    <div class="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+        <div class="w-96 h-96 bg-red-600 rounded-full blur-[128px] opacity-20 animate-pulse"></div>
+    </div>
+
+    <div class="z-10 text-center max-w-md w-full">
+        <div class="mb-10">
+            <div class="text-8xl mb-4 animate-bounce">🚨</div>
+            <h1 class="text-4xl font-black text-red-500 tracking-tighter uppercase italic">Botón de Pánico</h1>
+            <p class="text-slate-400 mt-2 text-lg">Sistema de Emergencias 24/7</p>
+        </div>
+
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-2xl mb-6">
+            <label class="block text-left text-sm font-bold text-slate-400 mb-2 uppercase tracking-wide">Tu
+                Matrícula</label>
+            <input type="text" id="matricula" placeholder="SAA 1234"
+                class="w-full p-4 rounded-xl bg-slate-900 border-2 border-slate-700 text-center text-3xl font-bold uppercase focus:border-red-500 outline-none transition-colors text-white placeholder-slate-600">
+        </div>
+
+        <!-- Botón Principal -->
+        <button onclick="simularEnvio()" id="btn-sos"
+            class="w-full bg-gradient-to-br from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-black py-8 rounded-2xl text-3xl shadow-[0_0_40px_rgba(220,38,38,0.6)] transition-all transform active:scale-95 border-b-8 border-red-900 active:border-b-0 relative top-0 active:top-2">
+            SOLICITAR GRÚA
+        </button>
+
+        <p id="status" class="mt-6 text-sm text-yellow-500 font-mono hidden flex items-center justify-center gap-2">
+            <span class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
+            Obteniendo señal GPS...
+        </p>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="modal-success"
+        class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur hidden flex items-center justify-center p-4">
+        <div
+            class="bg-slate-800 p-8 rounded-3xl max-w-sm text-center border border-emerald-500/30 shadow-[0_0_100px_rgba(16,185,129,0.2)]">
+            <div
+                class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 text-slate-900">
+                ✓</div>
+            <h2 class="text-2xl font-bold text-white mb-2">¡Solicitud Enviada!</h2>
+            <p class="text-slate-300 mb-6">El taller ha recibido tu ubicación y matrícula. Una unidad va en camino.</p>
+            <button onclick="location.reload()"
+                class="w-full py-3 rounded-xl bg-slate-700 text-white font-bold hover:bg-slate-600 transition">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        function simularEnvio() {
+            const matricula = document.getElementById('matricula').value.trim();
+            if (!matricula) {
+                alert("⚠️ Por favor ingresa tu matrícula");
+                document.getElementById('matricula').focus();
+                return;
+            }
+
+            const btn = document.getElementById('btn-sos');
+            const status = document.getElementById('status');
+
+            // UI Loading Simulation
+            btn.disabled = true;
+            btn.innerHTML = "ENVIANDO...";
+            btn.classList.add('opacity-75');
+            status.classList.remove('hidden');
+
+            // Simulate GPS Delay + Network Request
+            setTimeout(() => {
+                status.innerText = "📡 Conectando con taller...";
+            }, 1500);
+
+            setTimeout(() => {
+                // Success State
+                document.getElementById('modal-success').classList.remove('hidden');
+                btn.innerHTML = "SOLICITAR GRÚA";
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+                status.classList.add('hidden');
+            }, 3500);
+        }
+    </script>
+</body>
+
+</html>

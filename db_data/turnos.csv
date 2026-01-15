@@ -1,0 +1,2 @@
+id,cliente_telefono,cliente_nombre,moto,servicio,fecha,estado,created_at
+t_001,099123456,Juan Pérez,SBU 1234 - Honda CB 190R,Cambio de Aceite,15 Ene - 10:00,requested,2025-01-14T10:00:00Z

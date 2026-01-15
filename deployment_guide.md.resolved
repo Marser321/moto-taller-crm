@@ -1,0 +1,60 @@
+# Guía de Despliegue Local del "Cerebro" (n8n)
+
+Siguiendo la arquitectura recomendada, alojaremos n8n en tu propio servidor (Mini PC o Laptop vieja) para mantener costos cero.
+
+## Prerrequisitos
+*   **Hardware:** PC con Windows 10/11 o Linux (Ubuntu). 4GB RAM mínimo.
+*   **Software:** Docker Desktop instalado y corriendo.
+*   **Red:** Conexión a internet estable.
+
+## Paso 1: Instalación de n8n con Docker
+
+Abre tu terminal (PowerShell o Terminal) y ejecuta el siguiente comando para descargar e iniciar n8n.
+Este comando crea un contenedor persistente (no pierdes datos al reiniciar).
+
+```powershell
+docker run -d `
+  --name n8n `
+  --restart always `
+  -p 5678:5678 `
+  -v ~/.n8n:/home/node/.n8n `
+  -e N8N_SECURE_COOKIE=false `
+  n8nio/n8n
+```
+
+*   **-d**: Corre en segundo plano (Detached).
+*   **--restart always**: Si se apaga la PC, arranca solo al prender.
+*   **-v**: Guarda tus flujos en tu carpeta de usuario.
+
+Prueba que funciona entrando en tu navegador a: `http://localhost:5678`
+
+## Paso 2: Exponer n8n a Internet (Cloudflare Tunnel)
+
+Para que AppSheet (en la nube) pueda hablar con tu n8n (en tu casa), necesitamos un túnel seguro. Usaremos Cloudflare Tunnel (gratis).
+
+1.  **Crear cuenta:** Ve a [Cloudflare Zero Trust](https://one.dash.cloudflare.com/) (Gratis).
+2.  **Instalar cloudflared:** Descarga el ejecutable para tu OS.
+3.  **Crear Túnel:**
+    *   En el dashboard de Zero Trust > Networks > Tunnels > Create Tunnel.
+    *   Elige "cloudflared" y copia el comando de instalación que te dan. Ejecútalo en tu terminal.
+4.  **Configurar Public Hostname:**
+    *   **Subdominio:** `taller-n8n.tudominio.com` (o usa la opción TryCloudflare si no tienes dominio propio).
+    *   **Service:** `http://localhost:5678`.
+
+¡Listo! Ahora `https://taller-n8n.tudominio.com` es tu URL segura. Úsala, para configurar el **Webhook en AppSheet**.
+
+## Paso 3: Configuración Final
+1.  En n8n, crea tu cuenta de admin.
+2.  Ve a **Settings > Environments**.
+3.  Pega tu URL de Cloudflare en `WEBHOOK_URL`. Esto es crítico para que n8n sepa dónde escuchar.
+
+---
+
+## Mantenimiento
+*   Para actualizar n8n:
+    ```powershell
+    docker pull n8nio/n8n
+    docker stop n8n
+    docker rm n8n
+    # Vuelve a correr el comando del Paso 1
+    ```

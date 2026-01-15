@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Moto Taller</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../client/design-system.css">
+    <link rel="stylesheet" href="onboarding.css"> <!-- Onboarding Upgrade -->
+    <script>
+        // SUPABASE CONFIG
+        const SUPABASE_URL = 'https://wygkeihgmolampvaonpr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5Z2tlaWhnbW9sYW1wdmFvbnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTE5MTgsImV4cCI6MjA4NDAyNzkxOH0.kJiWLnzcTz2Wj6BoyOfJl19ovMmVc2_xvyhFABtqq_0';
+
+        // Tailwind Config
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "carbon-black": "#0a0a0a",
+                        "carbon-dark": "#121212",
+                        "accent-red": "#e63946",
+                        "glass-red": "rgba(230, 57, 70, 0.1)",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                }
+            }
+        }
+
+        // Auth check
+        if (localStorage.getItem('role') !== 'admin') window.location.href = '../login.html';
+    </script>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #0a0a0a;
+            background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+            background-size: 10px 10px;
+            color: #f1f5f9;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .glass-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .glass-input:focus {
+            border-color: #e63946;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+        }
+
+        .status-green {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-yellow {
+            background: rgba(234, 179, 8, 0.1);
+            color: #eab308;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .status-red {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-black/60 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-10 h-10 bg-gradient-to-br from-red-600 to-red-800 rounded-xl flex items-center justify-center font-black italic text-lg shadow-lg shadow-red-900/30">
+                M</div>
+            <div>
+                <h1 class="font-bold text-sm uppercase tracking-widest text-white">Moto <span
+                        class="text-red-500">CRM</span></h1>
+                <p class="text-[10px] text-zinc-500">Panel de Gestión</p>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <input type="file" id="input-csv" accept=".csv" class="hidden" onchange="importarCSV(this)">
+            <button onclick="syncClientes()" id="btn-sync"
+                class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-blue-500/50"
+                title="Sincronizar con Nube">
+                <span class="material-symbols-outlined text-sm">cloud_sync</span>
+            </button>
+            <button onclick="abrirModalCampaña()"
+                class="bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-red-500/50 animate-pulse"
+                title="Difusión Masiva Manual">
+                <span class="material-symbols-outlined text-sm">campaign</span> CAMPAÑAS
+            </button>
+            <button onclick="document.getElementById('input-csv').click()"
+                class="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-zinc-700"
+                title="Importar Excel/CSV">
+                <span class="material-symbols-outlined text-sm">upload_file</span> IMPORTAR
+            </button>
+            <button onclick="exportarCSV()"
+                class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition"
+                title="Exportar CSV">
+                📥 CSV
+            </button>
+            <button onclick="eliminarDuplicados()"
+                class="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-red-500/30"
+                title="Limpiar Duplicados">
+                <span class="material-symbols-outlined text-sm">cleaning_services</span> LIMPIAR
+            </button>
+            <button onclick="abrirModal()"
+                class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-900/30 transition">
+                <span class="material-symbols-outlined text-sm">person_add</span> NUEVO CLIENTE
+            </button>
+            <button onclick="localStorage.clear(); location.href='../login.html'"
+                class="text-zinc-500 hover:text-red-500 transition p-2">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MODAL CAMPAÑAS -->
+    <div id="modal-campana"
+        class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-4xl rounded-2xl p-6 relative h-[85vh] flex flex-col">
+            <button onclick="document.getElementById('modal-campana').classList.add('hidden')"
+                class="absolute right-4 top-4 text-zinc-500 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <h2 class="text-2xl font-bold mb-1 flex items-center gap-3">
+                <span class="text-red-500 material-symbols-outlined text-3xl">campaign</span>
+                Difusión Manual
+            </h2>
+            <p class="text-zinc-500 text-sm mb-6">Envía mensajes uno a uno sin riesgo de bloqueo.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-hidden">
+                <!-- PANEL IZQUIERDO: CONFIGURACIÓN -->
+                <div class="flex flex-col gap-4 overflow-y-auto pr-2">
+
+                    <!-- PASO 1: FILTRO -->
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5">
+                        <label class="text-xs font-bold text-zinc-400 uppercase block mb-2">1. Seleccionar
+                            Audiencia</label>
+                        <select id="campana-filtro" class="w-full glass-input p-3 rounded-lg"
+                            onchange="actualizarContadorCampana()">
+                            <option value="todos">Todos los Clientes</option>
+                            <option value="vencimientos">Por Vencer (Próximos 30 días)</option>
+                            <option value="vencidos">Ya Vencidos</option>
+                            <option value="activos">Suscripción Activa (Verde)</option>
+                        </select>
+                        <p class="text-right text-xs text-red-400 mt-2 font-bold" id="campana-contador">0 clientes
+                            seleccionados</p>
+                    </div>
+
+                    <!-- PASO 2: MENSAJE -->
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex-1 flex flex-col">
+                        <label class="text-xs font-bold text-zinc-400 uppercase block mb-2">2. Redactar Mensaje</label>
+
+                        <!-- Template Selector -->
+                        <div class="mb-3">
+                            <select id="campana-template" class="w-full glass-input p-2 rounded-lg text-xs"
+                                onchange="aplicarTemplate()">
+                                <option value="custom">Mensaje Personalizado</option>
+                                <option value="recordatorio">Recordatorio Vencimiento</option>
+                                <option value="oferta">Oferta Especial</option>
+                                <option value="horario">Cambio de Horario</option>
+                                <option value="cancelacion">Cancelación de Turno</option>
+                            </select>
+                        </div>
+
+                        <div class="flex gap-2 mb-2">
+                            <button onclick="insertarVariable('{{nombre}}')"
+                                class="text-[10px] bg-zinc-800 px-2 py-1 rounded hover:bg-zinc-700 transition">{{nombre}}</button>
+                            <button onclick="insertarVariable('{{vencimiento}}')"
+                                class="text-[10px] bg-zinc-800 px-2 py-1 rounded hover:bg-zinc-700 transition">{{vencimiento}}</button>
+                            <button onclick="insertarVariable('{{matricula}}')"
+                                class="text-[10px] bg-zinc-800 px-2 py-1 rounded hover:bg-zinc-700 transition">{{matricula}}</button>
+                        </div>
+                        <textarea id="campana-mensaje"
+                            class="w-full h-40 glass-input p-3 rounded-lg resize-none flex-1 text-sm font-sans"
+                            placeholder="Hola {{nombre}}, ..."></textarea>
+                    </div>
+
+                    <button onclick="generarColaEnvio()"
+                        class="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-red-900/40 transition active:scale-95">
+                        GENERAR COLA DE ENVÍO
+                    </button>
+                </div>
+
+                <!-- PANEL DERECHO: COLA -->
+                <div class="bg-black/30 rounded-xl border border-white/5 flex flex-col overflow-hidden relative">
+                    <div class="p-4 border-b border-white/5 bg-zinc-900/50 flex justify-between items-center">
+                        <h3 class="font-bold text-sm uppercase text-zinc-300">Cola de Envío</h3>
+                        <span id="progreso-envio" class="text-xs font-mono text-zinc-500">0/0</span>
+                    </div>
+                    <div id="lista-envios" class="flex-1 overflow-y-auto p-2 space-y-2 relative">
+                        <!-- LISTA VACÍA -->
+                        <div
+                            class="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 opacity-50">
+                            <span class="material-symbols-outlined text-5xl mb-2">playlist_add_check</span>
+                            <p class="text-sm">Configura y genera la cola</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 border-r border-white/5 bg-black/40 p-4 hidden lg:block">
+            <nav class="space-y-2">
+                <button onclick="verDashboard()" id="nav-dashboard"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">dataset</span>
+                    <span class="font-medium text-sm">Dashboard</span>
+                </button>
+                <div class="h-px bg-white/5 my-2"></div>
+                <button onclick="filtrarVista('todos')" id="nav-todos"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-600/10 text-red-500 border border-red-600/20 transition">
+                    <span class="material-symbols-outlined text-xl">people</span>
+                    <span class="font-bold text-sm">Todos</span>
+                </button>
+                <button onclick="filtrarVista('vencimientos')" id="nav-vencimientos"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">event_busy</span>
+                    <span class="font-medium text-sm">Por Vencer</span>
+                </button>
+                <button onclick="filtrarVista('vencidos')" id="nav-vencidos"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">error</span>
+                    <span class="font-medium text-sm">Vencidos</span>
+                </button>
+                <div class="h-px bg-white/5 my-2"></div>
+                <button onclick="verSeccionTurnos()" id="nav-turnos"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">calendar_month</span>
+                    <span class="font-medium text-sm">Gestión Turnos</span>
+                </button>
+            </nav>
+
+            <!-- STATS MINI -->
+            <div class="mt-8 space-y-3">
+                <div class="glass-panel rounded-xl p-4">
+                    <p class="text-xs text-zinc-500 uppercase">Total Clientes</p>
+                    <p class="text-2xl font-bold text-white" id="stat-total">0</p>
+                </div>
+                <div class="glass-panel rounded-xl p-4">
+                    <p class="text-xs text-zinc-500 uppercase">Por Vencer</p>
+                    <p class="text-2xl font-bold text-yellow-500" id="stat-vencer">0</p>
+                </div>
+                <div class="glass-panel rounded-xl p-4">
+                    <p class="text-xs text-zinc-500 uppercase">Vencidos</p>
+                    <p class="text-2xl font-bold text-red-500" id="stat-vencidos">0</p>
+                </div>
+                <div class="glass-panel rounded-xl p-4">
+                    <p class="text-xs text-zinc-500 uppercase">Auxilios Usados</p>
+                    <p class="text-2xl font-bold text-orange-500" id="stat-auxilios">0</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT -->
+        <main class="flex-1 overflow-y-auto p-6 relative">
+
+            <!-- DASHBOARD -->
+            <div id="seccion-dashboard" class="space-y-6 hidden">
+                <!-- KPI CARDS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <span class="material-symbols-outlined text-6xl">payments</span>
+                        </div>
+                        <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Ingresos del Mes</p>
+                        <h3 class="text-3xl font-black text-white" id="dash-ingresos">$0</h3>
+                        <p class="text-xs text-green-500 mt-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">trending_up</span> Actualizado hoy
+                        </p>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <span class="material-symbols-outlined text-6xl">check_circle</span>
+                        </div>
+                        <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Turnos Completados</p>
+                        <h3 class="text-3xl font-black text-white" id="dash-turnos">0</h3>
+                        <p class="text-xs text-zinc-500 mt-2">Este mes</p>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <span class="material-symbols-outlined text-6xl">group</span>
+                        </div>
+                        <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Cartera Activa</p>
+                        <h3 class="text-3xl font-black text-white" id="dash-clientes">0</h3>
+                        <p class="text-xs text-green-500 mt-2">Suscripciones vigentes</p>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <span class="material-symbols-outlined text-6xl">warning</span>
+                        </div>
+                        <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Por Vencer (7 días)</p>
+                        <h3 class="text-3xl font-black text-white" id="dash-vencer">0</h3>
+                        <p class="text-xs text-red-500 mt-2 cursor-pointer hover:underline"
+                            onclick="filtrarVista('vencimientos')">Ver lista</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- ACTIVIDAD RECIENTE -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-zinc-500">history</span> Actividad Reciente
+                        </h3>
+                        <div class="space-y-4" id="dash-activity">
+                            <!-- Items dinámicos -->
+                            <div class="text-zinc-500 text-sm italic">Cargando actividad...</div>
+                        </div>
+                    </div>
+
+                    <!-- ACCIONES RÁPIDAS -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-zinc-500">rocket_launch</span> Acciones Rápidas
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="abrirModalTurno()"
+                                class="bg-zinc-800 hover:bg-zinc-700 p-4 rounded-xl text-left transition group">
+                                <span
+                                    class="material-symbols-outlined text-green-500 mb-2 group-hover:scale-110 transition">calendar_add_on</span>
+                                <p class="font-bold text-sm">Nuevo Turno</p>
+                            </button>
+                            <button onclick="document.getElementById('modal').classList.remove('hidden')"
+                                class="bg-zinc-800 hover:bg-zinc-700 p-4 rounded-xl text-left transition group">
+                                <span
+                                    class="material-symbols-outlined text-blue-500 mb-2 group-hover:scale-110 transition">person_add</span>
+                                <p class="font-bold text-sm">Nuevo Cliente</p>
+                            </button>
+                            <button onclick="document.getElementById('modal-campana').classList.remove('hidden')"
+                                class="bg-zinc-800 hover:bg-zinc-700 p-4 rounded-xl text-left transition group">
+                                <span
+                                    class="material-symbols-outlined text-red-500 mb-2 group-hover:scale-110 transition">campaign</span>
+                                <p class="font-bold text-sm">Difusión</p>
+                            </button>
+                            <button onclick="verSeccionTurnos()"
+                                class="bg-zinc-800 hover:bg-zinc-700 p-4 rounded-xl text-left transition group">
+                                <span
+                                    class="material-symbols-outlined text-yellow-500 mb-2 group-hover:scale-110 transition">view_kanban</span>
+                                <p class="font-bold text-sm">Ver Tablero</p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA -->
+            <div id="seccion-clientes" class="glass-panel rounded-2xl overflow-hidden">
+                <div class="p-4 border-b border-white/5 flex justify-between items-center">
+                    <h3 class="text-lg font-bold">Lista de Clientes</h3>
+                    <input type="text" id="buscar" placeholder="Buscar..." onkeyup="filtrarTabla()"
+                        class="glass-input rounded-lg px-4 py-2 text-sm w-64">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-xs text-zinc-500 uppercase border-b border-white/5 bg-black/40">
+                                <th class="p-4">Cliente</th>
+                                <th class="p-4">Moto</th>
+                                <th class="p-4">Contrato</th>
+                                <th class="p-4">Auxilios</th>
+                                <th class="p-4">Estado</th>
+                                <th class="p-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-clientes" class="text-sm divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+                <div id="tabla-vacia" class="p-8 text-center text-zinc-600 hidden">
+                    <span class="material-symbols-outlined text-4xl mb-2">person_off</span>
+                    <p>No hay clientes registrados</p>
+                </div>
+            </div>
+
+            <!-- HISTORIAL DE AUXILIOS -->
+            <div id="historial-section" class="glass-panel rounded-2xl overflow-hidden mt-6 hidden">
+                <div class="p-4 border-b border-white/5 flex justify-between items-center">
+                    <h3 class="text-lg font-bold">Historial de Auxilios</h3>
+                    <button onclick="cerrarHistorial()" class="text-zinc-500 hover:text-white">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div id="historial-contenido" class="p-4 space-y-3"></div>
+            </div>
+
+            <!-- SECCIÓN TURNOS (KANBAN) -->
+            <div id="turnos-section" class="hidden mt-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined text-red-500">calendar_month</span>
+                        Gestión de Turnos
+                    </h3>
+                    <div class="flex gap-2">
+                        <button onclick="abrirModalTurno()"
+                            class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-green-900/30">
+                            <span class="material-symbols-outlined text-sm">add</span> NUEVO TURNO
+                        </button>
+                        <button onclick="retrySyncTurnos()" class="text-zinc-400 hover:text-white transition p-2"
+                            title="Sincronizar Turnos">
+                            <span class="material-symbols-outlined">sync</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-[600px]">
+
+                    <!-- COLUMNA SOLICITADOS -->
+                    <div class="glass-panel rounded-xl flex flex-col overflow-hidden bg-black/20">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                            <h4 class="font-bold text-sm text-yellow-500 uppercase">Solicitados</h4>
+                            <span id="count-requested"
+                                class="text-xs bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded">0</span>
+                        </div>
+                        <div id="col-requested" class="p-4 space-y-3 overflow-y-auto flex-1">
+                            <!-- Items -->
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA CONFIRMADOS -->
+                    <div class="glass-panel rounded-xl flex flex-col overflow-hidden bg-black/20">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                            <h4 class="font-bold text-sm text-green-500 uppercase">Confirmados</h4>
+                            <span id="count-confirmed"
+                                class="text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded">0</span>
+                        </div>
+                        <div id="col-confirmed" class="p-4 space-y-3 overflow-y-auto flex-1">
+                            <!-- Items -->
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA COMPLETADOS -->
+                    <div class="glass-panel rounded-xl flex flex-col overflow-hidden bg-black/20">
+                        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                            <h4 class="font-bold text-sm text-blue-500 uppercase">Completados</h4>
+                            <span id="count-completed"
+                                class="text-xs bg-blue-500/10 text-blue-500 px-2 py-1 rounded">0</span>
+                        </div>
+                        <div id="col-completed" class="p-4 space-y-3 overflow-y-auto flex-1">
+                            <!-- Items -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL REGISTRAR AUXILIO -->
+    <div id="modal-auxilio"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 relative">
+            <button onclick="cerrarModalAuxilio()" class="absolute right-4 top-4 text-zinc-500 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm">local_shipping</span>
+                </span>
+                Registrar Auxilio
+            </h2>
+            <p class="text-sm text-zinc-400 mb-4">Cliente: <span id="auxilio-cliente-nombre"
+                    class="text-white font-bold">---</span></p>
+            <form id="form-auxilio" class="space-y-4">
+                <input type="hidden" name="cliente_index" id="auxilio-cliente-index">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Fecha</label>
+                        <input type="date" name="fecha" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Kilómetros</label>
+                        <input type="number" name="km" class="w-full glass-input p-3 rounded-lg mt-1" placeholder="15"
+                            required>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-400">Descripción</label>
+                    <input type="text" name="descripcion" class="w-full glass-input p-3 rounded-lg mt-1"
+                        placeholder="Pinchadura en Av. Italia..." required>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="cerrarModalAuxilio()"
+                        class="px-4 py-2 text-zinc-400">Cancelar</button>
+                    <button type="submit"
+                        class="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2 rounded-lg font-bold">REGISTRAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO TURNO -->
+    <div id="modal-turno"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 relative">
+            <button onclick="cerrarModalTurno()" class="absolute right-4 top-4 text-zinc-500 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm">calendar_add_on</span>
+                </span>
+                Nuevo Turno Manual
+            </h2>
+            <form id="form-turno" class="space-y-4">
+                <div>
+                    <label class="text-xs text-zinc-400">Cliente</label>
+                    <select name="cliente" id="turno-cliente" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                        <option value="">Seleccionar cliente...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-400">Servicio</label>
+                    <select name="servicio" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                        <option value="Cambio de Aceite">Cambio de Aceite</option>
+                        <option value="Service Completo">Service Completo</option>
+                        <option value="Frenos">Frenos</option>
+                        <option value="Cadena/Transmisión">Cadena/Transmisión</option>
+                        <option value="Neumáticos">Neumáticos</option>
+                        <option value="Diagnóstico">Diagnóstico</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Fecha</label>
+                        <input type="date" name="fecha" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Hora</label>
+                        <select name="hora" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="cerrarModalTurno()" class="px-4 py-2 text-zinc-400">Cancelar</button>
+                    <button type="submit" id="btn-guardar-turno"
+                        class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold">GUARDAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO CLIENTE -->
+    <div id="modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="cerrarModal()" class="absolute right-4 top-4 text-zinc-500 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center"><span
+                        class="material-symbols-outlined text-sm">person_add</span></span>
+                Nuevo Cliente
+            </h2>
+            <form id="form-cliente" class="space-y-4">
+                <!-- DATOS PERSONALES -->
+                <p class="text-xs font-bold text-zinc-500 uppercase border-b border-white/10 pb-2">Datos Personales</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Nombre Completo</label>
+                        <input type="text" name="nombre" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Teléfono</label>
+                        <input type="tel" name="telefono" class="w-full glass-input p-3 rounded-lg mt-1"
+                            placeholder="099..." required>
+                    </div>
+                </div>
+
+                <!-- DATOS MOTO -->
+                <p class="text-xs font-bold text-red-400 uppercase border-b border-white/10 pb-2 mt-6">Datos de la Moto
+                </p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Matrícula</label>
+                        <input type="text" name="matricula"
+                            class="w-full glass-input p-3 rounded-lg mt-1 uppercase font-mono" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Modelo</label>
+                        <input type="text" name="modelo" class="w-full glass-input p-3 rounded-lg mt-1"
+                            placeholder="Honda CG 150..." required>
+                    </div>
+                </div>
+
+                <!-- DATOS CONTRATO -->
+                <p class="text-xs font-bold text-emerald-400 uppercase border-b border-white/10 pb-2 mt-6">Datos del
+                    Contrato</p>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Fecha Inicio</label>
+                        <input type="date" name="fecha_inicio" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Duración</label>
+                        <select name="duracion_meses" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                            <option value="6">6 meses</option>
+                            <option value="12" selected>12 meses</option>
+                            <option value="24">24 meses</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Auxilios Incluidos</label>
+                        <input type="number" name="auxilios_total" value="3" min="1" max="10"
+                            class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                </div>
+
+                <div class="pt-6 flex justify-end gap-3">
+                    <button type="button" onclick="cerrarModal()"
+                        class="px-4 py-2 text-zinc-400 hover:text-white transition">Cancelar</button>
+                    <button type="submit" id="btn-guardar"
+                        class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg shadow-red-900/30 transition">GUARDAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR CLIENTE -->
+    <div id="modal-editar"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="cerrarModalEditar()" class="absolute right-4 top-4 text-zinc-500 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                </span>
+                Editar Cliente
+            </h2>
+            <form id="form-editar" class="space-y-4">
+                <input type="hidden" name="id" id="editar-id">
+                <p class="text-xs font-bold text-zinc-500 uppercase border-b border-white/10 pb-2">Datos Personales</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Nombre Completo</label>
+                        <input type="text" name="nombre" id="editar-nombre"
+                            class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Teléfono</label>
+                        <input type="tel" name="telefono" id="editar-telefono"
+                            class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                </div>
+                <p class="text-xs font-bold text-red-400 uppercase border-b border-white/10 pb-2 mt-6">Datos de la Moto
+                </p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Matrícula</label>
+                        <input type="text" name="matricula" id="editar-matricula"
+                            class="w-full glass-input p-3 rounded-lg mt-1 uppercase font-mono" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Modelo</label>
+                        <input type="text" name="modelo" id="editar-modelo"
+                            class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                </div>
+                <p class="text-xs font-bold text-emerald-400 uppercase border-b border-white/10 pb-2 mt-6">Contrato</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Fecha Vencimiento</label>
+                        <input type="date" name="fecha_vencimiento" id="editar-vencimiento"
+                            class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Auxilios Usados / Total</label>
+                        <div class="flex gap-2 mt-1">
+                            <input type="number" name="auxilios_usados" id="editar-aux-usados"
+                                class="w-full glass-input p-3 rounded-lg" min="0">
+                            <input type="number" name="auxilios_total" id="editar-aux-total"
+                                class="w-full glass-input p-3 rounded-lg" min="1">
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-6 flex justify-end gap-3">
+                    <button type="button" onclick="cerrarModalEditar()"
+                        class="px-4 py-2 text-zinc-400 hover:text-white transition">Cancelar</button>
+                    <button type="submit" id="btn-editar"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg shadow-blue-900/30 transition">GUARDAR
+                        CAMBIOS</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // === DATOS ===
+        let clientes = [];
+
+        async function syncClientes() {
+            try {
+                // Notificar carga
+                const btnSync = document.getElementById('btn-sync');
+                if (btnSync) { btnSync.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span>'; }
+
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        clientes = data;
+                        renderTabla();
+                        console.log('Sincronizado con Supabase');
+                    }
+                }
+            } catch (e) {
+                console.warn('Supabase offline', e);
+            } finally {
+                const btnSync = document.getElementById('btn-sync');
+                if (btnSync) { btnSync.innerHTML = '<span class="material-symbols-outlined">cloud_sync</span>'; }
+            }
+        }
+
+        // === CALCULOS ===
+        function calcularVencimiento(fechaInicio, meses) {
+            const fecha = new Date(fechaInicio);
+            fecha.setMonth(fecha.getMonth() + parseInt(meses));
+            return fecha.toISOString().split('T')[0];
+        }
+
+        function diasRestantes(fechaVencimiento) {
+            const hoy = new Date();
+            const vence = new Date(fechaVencimiento);
+            const diff = Math.ceil((vence - hoy) / (1000 * 60 * 60 * 24));
+            return diff;
+        }
+
+        function getEstado(dias) {
+            if (dias < 0) return { clase: 'status-red', texto: 'Vencido', icono: 'error' };
+            if (dias <= 30) return { clase: 'status-yellow', texto: `${dias}d`, icono: 'schedule' };
+            return { clase: 'status-green', texto: 'Activo', icono: 'check_circle' };
+        }
+
+        // === RENDER ===
+        function renderTabla() {
+            const tbody = document.getElementById('tabla-clientes');
+            const vacio = document.getElementById('tabla-vacia');
+            tbody.innerHTML = '';
+
+            // Stats
+            document.getElementById('stat-total').textContent = clientes.length;
+
+            let porVencer = 0, vencidos = 0, totalAuxilios = 0;
+            clientes.forEach(c => {
+                const dias = diasRestantes(c.fecha_vencimiento);
+                if (dias < 0) vencidos++;
+                else if (dias <= 30) porVencer++;
+                totalAuxilios += (c.auxilios_usados || 0);
+            });
+
+            document.getElementById('stat-vencer').textContent = porVencer;
+            document.getElementById('stat-vencidos').textContent = vencidos;
+            document.getElementById('stat-auxilios').textContent = totalAuxilios;
+
+            // Filtrar para vista
+            let datosVista = clientes.map((c, i) => ({ ...c, _index: i })); // Preservar indice original
+
+            if (vistaActual === 'vencimientos') {
+                datosVista = datosVista.filter(c => {
+                    const dias = diasRestantes(c.fecha_vencimiento);
+                    return dias >= 0 && dias <= 30;
+                });
+            } else if (vistaActual === 'vencidos') {
+                datosVista = datosVista.filter(c => diasRestantes(c.fecha_vencimiento) < 0);
+            }
+
+            if (datosVista.length === 0) {
+                vacio.classList.remove('hidden');
+                if (clientes.length > 0) vacio.querySelector('p').textContent = 'No hay resultados en esta vista';
+                else vacio.querySelector('p').textContent = 'No hay clientes registrados';
+                return;
+            }
+            vacio.classList.add('hidden');
+
+            datosVista.forEach(c => {
+                const i = c._index;
+                const dias = diasRestantes(c.fecha_vencimiento);
+                const estado = getEstado(dias);
+                const auxiliosUsados = c.auxilios_usados || 0;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/5 transition';
+
+                // Fallbacks para datos undefined
+                const fechaInicio = c.fecha_inicio || 'No definido';
+                const fechaVence = c.fecha_vencimiento || 'No definido';
+                const auxiliosTotal = c.auxilios_total || 3;
+
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-bold text-white">${c.nombre}</div>
+                        <div class="text-xs text-zinc-500">${c.telefono}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="font-mono text-xs bg-zinc-800 px-2 py-1 rounded">${c.matricula}</span>
+                        <div class="text-xs text-zinc-500 mt-1">${c.modelo || ''}</div>
+                    </td>
+                    <td class="p-4 text-zinc-400 text-xs">
+                        <div>Inicio: ${fechaInicio}</div>
+                        <div>Vence: ${fechaVence}</div>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-1">
+                            <span class="text-lg font-bold ${auxiliosUsados >= auxiliosTotal ? 'text-red-500' : 'text-white'}">${auxiliosUsados}</span>
+                            <span class="text-zinc-600">/ ${auxiliosTotal}</span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded text-xs font-bold ${estado.clase} flex items-center gap-1 w-fit">
+                            <span class="material-symbols-outlined text-sm">${estado.icono}</span>
+                            ${estado.texto}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="abrirModalAuxilio(${i})" class="bg-orange-600 hover:bg-orange-500 text-white p-2 rounded-lg transition shadow-lg shadow-orange-900/30" title="Registrar Auxilio">
+                                🚚
+                            </button>
+                            <button onclick="abrirWhatsApp('${c.telefono}','${c.nombre}')" class="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg transition shadow-lg shadow-emerald-900/30 text-lg" title="WhatsApp">
+                                📱
+                            </button>
+                            <button onclick="editarCliente(${i})" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white p-2 rounded-lg transition text-lg" title="Editar">
+                                ✏️
+                            </button>
+                            <button onclick="eliminarCliente(${i})" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white p-2 rounded-lg transition text-lg" title="Eliminar">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // === ACCIONES ===
+        function abrirModal() {
+            document.getElementById('modal').classList.remove('hidden');
+            // Setear fecha de hoy por defecto
+            document.querySelector('input[name="fecha_inicio"]').value = new Date().toISOString().split('T')[0];
+        }
+        function cerrarModal() { document.getElementById('modal').classList.add('hidden'); }
+
+        // === TURNO MANUAL ===
+        function abrirModalTurno() {
+            // Poblar select de clientes
+            const select = document.getElementById('turno-cliente');
+            select.innerHTML = '<option value="">Seleccionar cliente...</option>';
+            clientes.forEach(c => {
+                select.innerHTML += `<option value="${c.id}" data-nombre="${c.nombre}" data-moto="${c.matricula} - ${c.modelo}">${c.nombre} (${c.matricula})</option>`;
+            });
+            // Fecha por defecto: mañana
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.querySelector('#form-turno input[name="fecha"]').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('modal-turno').classList.remove('hidden');
+        }
+        function cerrarModalTurno() { document.getElementById('modal-turno').classList.add('hidden'); }
+
+        document.getElementById('form-turno').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-guardar-turno');
+            btn.textContent = 'GUARDANDO...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const clienteId = formData.get('cliente');
+            const selectedOption = document.querySelector(`#turno-cliente option[value="${clienteId}"]`);
+
+            const turnoData = {
+                cliente: selectedOption.dataset.nombre,
+                moto: selectedOption.dataset.moto,
+                servicio: formData.get('servicio'),
+                fecha: `${formData.get('fecha')} - ${formData.get('hora')}`,
+                estado: 'requested'
+            };
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(turnoData)
+                });
+
+                if (!res.ok) throw new Error('Supabase error');
+
+                btn.textContent = '✓ GUARDADO';
+                setTimeout(async () => {
+                    cerrarModalTurno();
+                    btn.textContent = 'GUARDAR';
+                    btn.disabled = false;
+                    e.target.reset();
+                    await syncTurnos();
+                    renderKanban();
+                    showToast('✅ Turno creado correctamente');
+                }, 600);
+            } catch (err) {
+                console.error('Error guardando turno', err);
+                alert('Error al guardar turno');
+                btn.textContent = 'GUARDAR';
+                btn.disabled = false;
+            }
+        });
+
+        // === EDITAR CLIENTE ===
+        function editarCliente(index) {
+            const c = clientes[index];
+            document.getElementById('editar-id').value = c.id;
+            document.getElementById('editar-nombre').value = c.nombre || '';
+            document.getElementById('editar-telefono').value = c.telefono || '';
+            document.getElementById('editar-matricula').value = c.matricula || '';
+            document.getElementById('editar-modelo').value = c.modelo || '';
+            document.getElementById('editar-vencimiento').value = c.fecha_vencimiento || '';
+            document.getElementById('editar-aux-usados').value = c.auxilios_usados || 0;
+            document.getElementById('editar-aux-total').value = c.auxilios_total || 3;
+            document.getElementById('modal-editar').classList.remove('hidden');
+        }
+        function cerrarModalEditar() { document.getElementById('modal-editar').classList.add('hidden'); }
+
+        document.getElementById('form-editar').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-editar');
+            btn.textContent = 'GUARDANDO...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const id = formData.get('id');
+            const data = {
+                nombre: formData.get('nombre'),
+                telefono: formData.get('telefono'),
+                matricula: formData.get('matricula'),
+                modelo: formData.get('modelo'),
+                fecha_vencimiento: formData.get('fecha_vencimiento'),
+                auxilios_usados: parseInt(formData.get('auxilios_usados')) || 0,
+                auxilios_total: parseInt(formData.get('auxilios_total')) || 3
+            };
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) throw new Error('Supabase error');
+
+                btn.textContent = '✓ GUARDADO';
+                setTimeout(async () => {
+                    cerrarModalEditar();
+                    btn.textContent = 'GUARDAR CAMBIOS';
+                    btn.disabled = false;
+                    await syncClientes();
+                    showToast('✅ Cliente actualizado');
+                }, 600);
+            } catch (err) {
+                console.error('Error actualizando', err);
+                alert('Error al actualizar cliente');
+                btn.textContent = 'GUARDAR CAMBIOS';
+                btn.disabled = false;
+            }
+        });
+
+        async function eliminarCliente(index) {
+            if (confirm('¿Eliminar este cliente?')) {
+                const cliente = clientes[index];
+                try {
+                    await fetch(`${SUPABASE_URL}/rest/v1/clientes?id=eq.${cliente.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    });
+                    await syncClientes(); // Refresh from DB
+                } catch (e) {
+                    console.error('Error eliminando', e);
+                    alert('Error al eliminar cliente');
+                }
+            }
+        }
+
+        function eliminarDuplicados() {
+            if (!confirm('¿Estás seguro de buscar y eliminar duplicados?\nSe conservará el primer registro encontrado.')) return;
+
+            const unicos = [];
+            const vistos = new Set();
+            let borrados = 0;
+
+            clientes.forEach(c => {
+                // Clave única compuesta o simple (usaremos teléfono como principal identificador)
+                const key = c.telefono.replace(/\D/g, '');
+
+                if (!vistos.has(key)) {
+                    vistos.add(key);
+                    unicos.push(c);
+                } else {
+                    borrados++;
+                }
+            });
+
+            if (borrados > 0) {
+                clientes = unicos;
+                localStorage.setItem('clientes_local', JSON.stringify(clientes));
+                renderTabla();
+                alert(`✅ Se eliminaron ${borrados} clientes duplicados.`);
+
+                // Opcional: Intentar limpiar en n8n/CSV requeriría una API de reescritura total
+                // Por ahora solo local para MVP
+            } else {
+                alert('👍 No se encontraron duplicados.');
+            }
+        }
+
+        function filtrarTabla() {
+            const filtro = document.getElementById('buscar').value.toLowerCase();
+            const filas = document.querySelectorAll('#tabla-clientes tr');
+            filas.forEach(fila => {
+                const texto = fila.textContent.toLowerCase();
+                fila.style.display = texto.includes(filtro) ? '' : 'none';
+            });
+        }
+
+        // === GUARDAR ===
+        document.getElementById('form-cliente').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-guardar');
+            btn.textContent = 'GUARDANDO...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Calcular vencimiento
+            data.fecha_vencimiento = calcularVencimiento(data.fecha_inicio, data.duracion_meses);
+            data.auxilios_usados = 0;
+
+            // Clean data - remove duracion_meses as it's not in the schema
+            delete data.duracion_meses;
+            delete data.fecha_inicio;
+
+            // VALIDACIÓN DE DUPLICADOS
+            const cleanTel = (t) => t.replace(/\D/g, '');
+            const cleanMat = (m) => m ? m.toUpperCase().replace(/\s/g, '') : '';
+
+            const existe = clientes.find(c =>
+                cleanTel(c.telefono) === cleanTel(data.telefono) ||
+                cleanMat(c.matricula) === cleanMat(data.matricula)
+            );
+
+            if (existe) {
+                alert(`⚠️ Error: Ya existe un cliente con ese Teléfono o Matrícula.\n(${existe.nombre} - ${existe.matricula})`);
+                btn.textContent = 'GUARDAR';
+                btn.disabled = false;
+                return;
+            }
+
+            // Guardar en Supabase
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) throw new Error('Supabase error');
+
+                btn.textContent = '✓ GUARDADO';
+                setTimeout(async () => {
+                    cerrarModal();
+                    btn.textContent = 'GUARDAR';
+                    btn.disabled = false;
+                    e.target.reset();
+                    await syncClientes(); // Refresh from DB
+                }, 600);
+
+            } catch (err) {
+                console.error('Error guardando', err);
+                alert('Error al guardar cliente');
+                btn.textContent = 'GUARDAR';
+                btn.disabled = false;
+            }
+        });
+
+        // === UTILS ===
+        function abrirWhatsApp(tel, nombre) {
+            window.open(`https://wa.me/598${tel.replace(/\D/g, '')}?text=Hola ${nombre}, te contactamos del Moto Taller.`, '_blank');
+        }
+
+        // === AUXILIOS ===
+        let historialAuxilios = JSON.parse(localStorage.getItem('historial_auxilios') || '[]');
+
+        function abrirModalAuxilio(index) {
+            const cliente = clientes[index];
+            if (cliente.auxilios_usados >= cliente.auxilios_total) {
+                alert('⚠️ Este cliente ya usó todos sus auxilios incluidos.');
+                return;
+            }
+            document.getElementById('auxilio-cliente-nombre').textContent = cliente.nombre;
+            document.getElementById('auxilio-cliente-index').value = index;
+            document.querySelector('#form-auxilio input[name="fecha"]').value = new Date().toISOString().split('T')[0];
+            document.getElementById('modal-auxilio').classList.remove('hidden');
+        }
+
+        function cerrarModalAuxilio() {
+            document.getElementById('modal-auxilio').classList.add('hidden');
+        }
+
+        document.getElementById('form-auxilio').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            const index = parseInt(data.cliente_index);
+            const cliente = clientes[index];
+
+            // Incrementar contador
+            const newAuxilios = (cliente.auxilios_usados || 0) + 1;
+
+            try {
+                // PATCH a Supabase
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?id=eq.${cliente.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ auxilios_usados: newAuxilios })
+                });
+
+                if (!res.ok) throw new Error('Supabase error');
+
+                // Guardar en historial local (opcional, podría ser otra tabla)
+                historialAuxilios.push({
+                    cliente_nombre: cliente.nombre,
+                    cliente_matricula: cliente.matricula,
+                    fecha: data.fecha,
+                    km: data.km,
+                    descripcion: data.descripcion,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('historial_auxilios', JSON.stringify(historialAuxilios));
+
+                cerrarModalAuxilio();
+                e.target.reset();
+                await syncClientes();
+                showToast('✅ Auxilio registrado');
+            } catch (err) {
+                console.error('Error registrando auxilio', err);
+                alert('Error al registrar auxilio');
+            }
+        });
+
+        function verHistorial(index) {
+            const cliente = clientes[index];
+            const auxiliosCliente = historialAuxilios.filter(a => a.cliente_matricula === cliente.matricula);
+            const contenido = document.getElementById('historial-contenido');
+
+            if (auxiliosCliente.length === 0) {
+                contenido.innerHTML = '<p class="text-zinc-500">Sin auxilios registrados.</p>';
+            } else {
+                contenido.innerHTML = auxiliosCliente.map(a => `
+                    <div class="bg-black/30 rounded-lg p-3 flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-white">${a.descripcion}</p>
+                            <p class="text-xs text-zinc-500">${a.fecha} • ${a.km} km</p>
+                        </div>
+                        <span class="material-symbols-outlined text-orange-500">local_shipping</span>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('historial-section').classList.remove('hidden');
+        }
+
+        function cerrarHistorial() {
+            document.getElementById('historial-section').classList.add('hidden');
+        }
+
+        // === EXPORTAR CSV ===
+        function exportarCSV() {
+            if (clientes.length === 0) {
+                alert('No hay clientes para exportar.');
+                return;
+            }
+
+            const headers = ['Nombre', 'Telefono', 'Matricula', 'Modelo', 'Fecha_Inicio', 'Fecha_Vencimiento', 'Auxilios_Total', 'Auxilios_Usados'];
+            const rows = clientes.map(c => [
+                c.nombre || '',
+                c.telefono || '',
+                c.matricula || '',
+                c.modelo || '',
+                c.fecha_inicio || '',
+                c.fecha_vencimiento || '',
+                c.auxilios_total || 3,
+                c.auxilios_usados || 0
+            ]);
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(v => `"${v}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `clientes_moto_taller_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+
+            alert('✅ Archivo CSV descargado!');
+        }
+
+        // === FILTROS SIDEBAR ===
+        let vistaActual = 'todos';
+
+        function filtrarVista(vista) {
+            vistaActual = vista;
+
+            // Show table section, hide dash/turnos
+            document.getElementById('seccion-dashboard').classList.add('hidden');
+            document.getElementById('seccion-clientes').classList.remove('hidden');
+            document.getElementById('historial-section').classList.add('hidden');
+            document.getElementById('turnos-section').classList.add('hidden');
+
+            // Actualizar UI botones nav (reset dashboard selection)
+            updateNavHighlight(`nav-${vista}`);
+
+            renderTabla();
+        }
+
+        // === IMPORTAR CSV ===
+        function importarCSV(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const text = e.target.result;
+                const rows = text.split('\n');
+                let importados = 0;
+
+                rows.forEach((row, index) => {
+                    if (index === 0) return; // Saltar header si existe (asumimos formato simple)
+
+                    const cols = row.split(',');
+                    if (cols.length < 2) return;
+
+                    // Formato esperado CSV: Nombre,Telefono,Matricula,Modelo,Fecha,Meses
+                    // Limpirar comillas y espacios
+                    const clean = (val) => val ? val.replace(/"/g, '').trim() : '';
+
+                    const nuevo = {
+                        nombre: clean(cols[0]),
+                        telefono: clean(cols[1]),
+                        matricula: clean(cols[2]),
+                        modelo: clean(cols[3] || 'Desconocido'),
+                        fecha_inicio: clean(cols[4]) || new Date().toISOString().split('T')[0],
+                        duracion_meses: clean(cols[5]) || '12',
+                        auxilios_total: 3,
+                        auxilios_usados: 0
+                    };
+
+                    // Calcular vencimiento
+                    nuevo.fecha_vencimiento = calcularVencimiento(nuevo.fecha_inicio, nuevo.duracion_meses);
+
+                    if (nuevo.nombre) {
+                        clientes.push(nuevo);
+                        importados++;
+                    }
+                });
+
+                localStorage.setItem('clientes_local', JSON.stringify(clientes));
+                renderTabla();
+                alert(`✅ Se importaron ${importados} clientes correctamente.`);
+                input.value = ''; // Reset
+            };
+            reader.readAsText(file);
+        }
+
+        // === AUTOMATIZACIÓN DE ALERTAS ===
+        function chequearAlertas() {
+            const porVencer = clientes.filter(c => {
+                const dias = diasRestantes(c.fecha_vencimiento);
+                return dias >= 0 && dias <= 7; // Avisar 7 días antes
+            });
+
+            if (porVencer.length > 0) {
+                // Crear notificación visual en el sistema
+                const alertaDiv = document.createElement('div');
+                alertaDiv.className = 'fixed bottom-4 right-4 bg-zinc-900 border border-yellow-500/50 p-4 rounded-xl shadow-2xl z-50 animate-bounce cursor-pointer';
+                alertaDiv.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-yellow-500">notifications_active</span>
+                        <div>
+                            <p class="font-bold text-white">Alertas Automáticas</p>
+                            <p class="text-xs text-zinc-400">Tienes ${porVencer.length} suscripciones por vencer.</p>
+                        </div>
+                    </div>
+                `;
+                alertaDiv.onclick = () => {
+                    if (confirm('¿Quieres abrir WhatsApp para enviar recordatorios a estos clientes?')) {
+                        porVencer.forEach(c => {
+                            const msg = `Hola ${c.nombre}, tu plan de Auxilio Mecánico vence el ${c.fecha_vencimiento}. ¡Renueva ahora para no quedarte a pie! 🏍️💨`;
+                            window.open(`https://wa.me/598${c.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                        });
+                    }
+                    alertaDiv.remove();
+                };
+                document.body.appendChild(alertaDiv);
+            }
+        }
+
+        // === CAMPAÑAS AUTOMATIZADAS ===
+        let colaEnvio = [];
+        let campaignPaused = true;
+
+        function abrirModalCampaña() {
+            document.getElementById('modal-campana').classList.remove('hidden');
+            actualizarContadorCampana();
+        }
+
+        function actualizarContadorCampana() {
+            const filtro = document.getElementById('campana-filtro').value;
+            const targets = filtrarClientes(filtro);
+            document.getElementById('campana-contador').textContent = `${targets.length} clientes seleccionados`;
+        }
+
+        function filtrarClientes(criterio) {
+            return clientes.filter(c => {
+                // Determine days remaining based on expiration date
+                const dias = diasRestantes(c.fecha_vencimiento);
+                if (criterio === 'todos') return true;
+                // Ajuste critero vencimientos para ser mas amplio en demos
+                if (criterio === 'vencimientos') return dias >= -5 && dias <= 60;
+                if (criterio === 'vencidos') return dias < 0;
+                if (criterio === 'activos') return dias > 30;
+                return false;
+            });
+        }
+
+        // Templates Dictionary
+        const CAMPAIGN_TEMPLATES = {
+            'custom': '',
+            'recordatorio': 'Hola {{nombre}} 👋, te recordamos que tu suscripción de Auxilio Mecánico vence el {{vencimiento}}. Renueva con nosotros para seguir protegido en la ruta! 🏍️',
+            'oferta': '¡Oferta Especial {{nombre}}! 🎁 Trae tu {{matricula}} esta semana y obtén un 20% de descuento en cambio de aceite. ¡Te esperamos!',
+            'horario': 'Aviso Importante: Nuestro taller cambiará de horario la próxima semana. Atenderemos de 10:00 a 19:00 hs. ¡Gracias!',
+            'cancelacion': 'Hola {{nombre}}, lamentamos informarte que por motivos de fuerza mayor debemos reprogramar turnos. Nos contactaremos contigo a la brevedad.'
+        };
+
+        function aplicarTemplate() {
+            const select = document.getElementById('campana-template');
+            const textarea = document.getElementById('campana-mensaje');
+            const key = select.value;
+
+            if (key !== 'custom' && CAMPAIGN_TEMPLATES[key]) {
+                textarea.value = CAMPAIGN_TEMPLATES[key];
+            }
+        }
+
+        function insertarVariable(variable) {
+            const textarea = document.getElementById('campana-mensaje');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            textarea.value = text.substring(0, start) + variable + text.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+            textarea.focus();
+        }
+
+        function generarColaEnvio() {
+            const mensajeTemplate = document.getElementById('campana-mensaje').value;
+            if (!mensajeTemplate.trim()) {
+                alert('Escribe un mensaje primero.');
+                return;
+            }
+
+            const filtro = document.getElementById('campana-filtro').value;
+            const targets = filtrarClientes(filtro);
+
+            // Allow re-generating queue but keep sent status if same filter? simpler to reset for now
+            colaEnvio = targets.map((c, i) => ({ ...c, enviado: false, id_cola: i }));
+
+            // Add control buttons to UI
+            const container = document.getElementById('lista-envios').parentNode;
+            if (!document.getElementById('btn-start-campaign')) {
+                const controls = document.createElement('div');
+                controls.className = 'flex gap-2 mb-4';
+                controls.innerHTML = `
+                    <button id="btn-start-campaign" onclick="toggleCampaña()" class="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-green-900/20">
+                        <span class="material-symbols-outlined">play_arrow</span> INICIAR CAMPAÑA AUTO
+                    </button>
+                    <div class="px-4 py-2 bg-zinc-800 rounded-xl border border-white/5 flex items-center gap-2">
+                        <span class="text-zinc-500 text-xs font-bold uppercase">Delay</span>
+                        <select id="campaign-delay" class="bg-transparent text-white font-bold text-sm outline-none">
+                            <option value="2000">2s</option>
+                            <option value="5000" selected>5s</option>
+                            <option value="10000">10s</option>
+                        </select>
+                    </div>
+                 `;
+                // Insert after title or before list
+                const list = document.getElementById('lista-envios');
+                list.parentNode.insertBefore(controls, list);
+            }
+
+            renderCola();
+        }
+
+        async function toggleCampaña() {
+            campaignPaused = !campaignPaused;
+            const btn = document.getElementById('btn-start-campaign');
+
+            if (!campaignPaused) {
+                btn.innerHTML = `<span class="material-symbols-outlined">pause</span> PAUSAR`;
+                btn.className = 'flex-1 bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-lg';
+                procesarCola();
+            } else {
+                btn.innerHTML = `<span class="material-symbols-outlined">play_arrow</span> RESUMIR`;
+                btn.className = 'flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition shadow-lg';
+            }
+        }
+
+        async function procesarCola() {
+            const mensajeTemplate = document.getElementById('campana-mensaje').value;
+            const delay = parseInt(document.getElementById('campaign-delay').value);
+
+            for (let i = 0; i < colaEnvio.length; i++) {
+                if (campaignPaused) break;
+                if (colaEnvio[i].enviado) continue;
+
+                const item = colaEnvio[i];
+                const msgFinal = mensajeTemplate
+                    .replace(/{{nombre}}/g, item.nombre.split(' ')[0])
+                    .replace(/{{matricula}}/g, item.matricula || '')
+                    .replace(/{{vencimiento}}/g, item.fecha_vencimiento || '');
+
+                // Scroll item into view
+                const row = document.getElementById(`cola-item-${i}`);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.classList.add('border-yellow-500'); // Highlight processing
+                }
+
+                // Send via API
+                const res = await enviarWhatsApp(item.telefono, msgFinal, 'campaign');
+
+                if (res.success) {
+                    colaEnvio[i].enviado = true;
+                    renderCola(); // Updates UI state
+                }
+
+                // Wait delay
+                await new Promise(r => setTimeout(r, delay));
+            }
+
+            if (colaEnvio.every(c => c.enviado)) {
+                campaignPaused = true;
+                document.getElementById('btn-start-campaign').innerHTML = `<span class="material-symbols-outlined">check</span> COMPLETADO`;
+                document.getElementById('btn-start-campaign').className = 'flex-1 bg-zinc-700 text-zinc-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed';
+                alert("Campaña finalizada con éxito!");
+            }
+        }
+
+        function renderCola() {
+            const container = document.getElementById('lista-envios');
+            const mensajeTemplate = document.getElementById('campana-mensaje').value;
+            container.innerHTML = '';
+
+            let enviados = 0;
+
+            colaEnvio.forEach((item, idx) => {
+                if (item.enviado) enviados++;
+
+                // Preview text logic
+                let msgFinal = mensajeTemplate
+                    .replace(/{{nombre}}/g, item.nombre.split(' ')[0])
+                    .replace(/{{matricula}}/g, item.matricula || '');
+
+                const el = document.createElement('div');
+                el.id = `cola-item-${idx}`; // For scrolling
+                el.className = `p-3 rounded-xl border flex justify-between items-center transition mb-2 ${item.enviado ? 'bg-green-500/10 border-green-500/30' : 'bg-zinc-800/50 border-white/5'}`;
+
+                el.innerHTML = `
+                    <div class="overflow-hidden mr-3">
+                        <p class="font-bold text-sm ${item.enviado ? 'text-green-400' : 'text-white'}">${item.nombre}</p>
+                        <p class="text-[10px] text-zinc-500 truncate">${item.telefono}</p>
+                    </div>
+                    ${item.enviado
+                        ? `<span class="material-symbols-outlined text-green-500 select-none">check_circle</span>`
+                        : `<button onclick="enviarUnico(${idx})" class="bg-zinc-700 hover:bg-white text-white hover:text-black px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                            <span class="material-symbols-outlined text-[10px]">send</span>
+                           </button>`
+                    }
+                `;
+                container.appendChild(el);
+            });
+
+            document.getElementById('progreso-envio').textContent = `${enviados}/${colaEnvio.length}`;
+        }
+
+        async function enviarUnico(idx) {
+            const item = colaEnvio[idx];
+            const mensajeTemplate = document.getElementById('campana-mensaje').value;
+            const msgFinal = mensajeTemplate
+                .replace(/{{nombre}}/g, item.nombre.split(' ')[0])
+                .replace(/{{matricula}}/g, item.matricula || '');
+
+            await enviarWhatsApp(item.telefono, msgFinal, 'campaign_manual');
+            colaEnvio[idx].enviado = true;
+            renderCola();
+        }
+
+
+        // === DASHBOARD ===
+        async function loadDashboardStats() {
+            // Stats from memory/cache first for speed
+            const activeClients = clientes.filter(c => {
+                const dias = diasRestantes(c.fecha_vencimiento);
+                return getEstado(dias).texto === 'Activo';
+            }).length;
+            document.getElementById('dash-clientes').textContent = activeClients;
+
+            const nextExpire = clientes.filter(c => {
+                const dias = diasRestantes(c.fecha_vencimiento);
+                return getEstado(dias).clase === 'status-yellow';
+            }).length;
+            document.getElementById('dash-vencer').textContent = nextExpire;
+
+            // Fetch Facturas for current month
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+            try {
+                // Ingresos
+                const resFacturas = await fetch(`${SUPABASE_URL}/rest/v1/facturas?created_at=gte.${firstDay}&select=total`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (resFacturas.ok) {
+                    const facturas = await resFacturas.json();
+                    const total = facturas.reduce((acc, curr) => acc + (curr.total || 0), 0);
+                    document.getElementById('dash-ingresos').textContent = `$${total.toLocaleString('es-UY')}`;
+                }
+
+                // Turnos Completados
+                const resTurnos = await fetch(`${SUPABASE_URL}/rest/v1/turnos?estado=eq.completed&fecha=like.${months[now.getMonth()]}&select=count`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Range': '0-0' }
+                });
+                // Note: simple text match for month in date string might be tricky if format changes, 
+                // but our current format is "15 Ene - 10:00". "Ene" matches.
+                // Better approach: filter by updated_at or created_at if we had complete timestamps on turnos.
+                // For now, let's just count completed turnos in general or try to filter client-side if needed.
+                // Let's rely on kanban sync
+                const completedCount = turnos.filter(t => t.estado === 'completed').length;
+                document.getElementById('dash-turnos').textContent = completedCount;
+
+                // Activity Feed
+                const activityContainer = document.getElementById('dash-activity');
+                // Mix latest clients and completed turnos
+                const recentTurnos = turnos.filter(t => t.estado === 'completed').slice(0, 3);
+                const recentClients = clientes.slice(-2).reverse(); // Newly added
+
+                let activityHtml = '';
+                recentTurnos.forEach(t => {
+                    activityHtml += `
+                    <div class="flex items-center gap-3 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                        </div>
+                        <div>
+                            <p class="text-xs text-white font-bold">Turno Completado</p>
+                            <p class="text-[10px] text-zinc-500">${t.cliente} - ${t.servicio}</p>
+                        </div>
+                    </div>
+                   `;
+                });
+                recentClients.forEach(c => {
+                    activityHtml += `
+                    <div class="flex items-center gap-3 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                        <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                            <span class="material-symbols-outlined text-sm">person_add</span>
+                        </div>
+                        <div>
+                            <p class="text-xs text-white font-bold">Nuevo Cliente</p>
+                            <p class="text-[10px] text-zinc-500">${c.nombre}</p>
+                        </div>
+                    </div>
+                   `;
+                });
+
+                if (!activityHtml) activityHtml = '<div class="text-zinc-500 text-sm">Sin actividad reciente</div>';
+                activityContainer.innerHTML = activityHtml;
+
+            } catch (e) { console.warn('Dash stats error', e); }
+        }
+
+        function verDashboard() {
+            vistaActual = 'dashboard';
+            document.getElementById('seccion-dashboard').classList.remove('hidden');
+            document.getElementById('seccion-clientes').classList.add('hidden'); // Table container
+            document.getElementById('historial-section').classList.add('hidden');
+            document.getElementById('turnos-section').classList.add('hidden');
+
+            updateNavHighlight('nav-dashboard');
+            loadDashboardStats();
+        }
+
+        // Helper for highlighting nav
+        function updateNavHighlight(activeId) {
+            document.querySelectorAll('aside nav button').forEach(b => {
+                b.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition';
+                b.querySelector('span:last-child').className = 'font-medium text-sm';
+            });
+            const btn = document.getElementById(activeId);
+            if (btn) {
+                btn.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-600/10 text-red-500 border border-red-600/20 transition';
+                btn.querySelector('span:last-child').className = 'font-bold text-sm';
+            }
+        }
+
+        // === GESTIÓN DE TURNOS (KANBAN) ===
+        let turnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
+
+        function verSeccionTurnos() {
+            vistaActual = 'turnos';
+            // Hide others
+            document.getElementById('seccion-dashboard').classList.add('hidden');
+            document.getElementById('seccion-clientes').classList.add('hidden');
+            document.getElementById('historial-section').classList.add('hidden');
+            document.getElementById('turnos-section').classList.remove('hidden');
+
+            updateNavHighlight('nav-turnos');
+            renderKanban();
+        }
+
+        // Override existing filter function to handle navigation back to table
+        const originalFiltrarVista = filtrarVista;
+        filtrarVista = function (vista) {
+            document.getElementById('turnos-section').classList.add('hidden');
+            document.querySelector('.glass-panel.rounded-2xl').classList.remove('hidden');
+            originalFiltrarVista(vista);
+        };
+
+        function renderKanban() {
+            // Use turnos array directly (loaded from Supabase)
+
+            const cols = {
+                requested: document.getElementById('col-requested'),
+                confirmed: document.getElementById('col-confirmed'),
+                completed: document.getElementById('col-completed')
+            };
+
+            const counts = { requested: 0, confirmed: 0, completed: 0 };
+
+            // Clear
+            Object.values(cols).forEach(c => c.innerHTML = '');
+
+            turnos.forEach(t => {
+                const status = t.estado || 'requested'; // requested, confirmed, completed
+                if (counts[status] !== undefined) counts[status]++;
+
+                const card = document.createElement('div');
+                card.className = 'bg-zinc-800 p-4 rounded-lg border border-white/5 hover:border-white/20 transition shadow-lg relative group';
+
+                // Get clean phone (mock logic: look up client in main DB or use dummy)
+                // For this demo we'll use a placeholder or try to find client
+                const clientData = clientes.find(c => c.nombre === t.cliente) || { telefono: '59899123456' };
+                const tel = clientData.telefono;
+
+                let actions = '';
+                if (status === 'requested') {
+                    actions = `
+                        <div class="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                            <button onclick="confirmarTurnoWsp('${t.id}', '${t.cliente}', '${t.servicio}', '${t.fecha}', '${tel}')" class="flex-1 bg-green-600/20 text-green-500 hover:bg-green-600 hover:text-white py-1 rounded text-xs font-bold transition flex justify-center items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">whatsapp</span> ACEPTAR
+                            </button>
+                            <button onclick="eliminarTurno('${t.id}')" class="bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white px-2 rounded text-xs transition">✕</button>
+                        </div>`;
+                } else if (status === 'confirmed') {
+                    actions = `
+                        <div class="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                            <button onclick="completarTurnoWsp('${t.id}', '${t.cliente}', '${t.servicio}', '${tel}')" class="flex-1 bg-blue-600/20 text-blue-500 hover:bg-blue-600 hover:text-white py-1 rounded text-xs font-bold transition flex justify-center items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">check_circle</span> COMPLETAR
+                            </button>
+                             <button onclick="cambiarEstadoTurno('${t.id}', 'requested')" class="text-zinc-500 hover:text-white px-2 text-xs">Deshacer</button>
+                        </div>`;
+                } else if (status === 'completed') {
+                    actions = `
+                        <div class="flex gap-2 mt-3 pt-3 border-t border-white/5">
+                            <button onclick="generarFactura('${t.id}', '${t.cliente}', '${t.servicio}', '${tel}')" class="flex-1 bg-emerald-600/20 text-emerald-500 hover:bg-emerald-600 hover:text-white py-1 rounded text-xs font-bold transition flex justify-center items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">receipt_long</span> FACTURA
+                            </button>
+                            <button onclick="enviarFacturaWsp('${t.id}', '${t.cliente}', '${tel}')" class="bg-green-600/20 text-green-500 hover:bg-green-600 hover:text-white px-2 rounded text-xs transition" title="Enviar por WhatsApp">📱</button>
+                        </div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-bold text-white text-sm">${t.cliente}</span>
+                        <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-zinc-400">${t.fecha.split(' - ')[0]}</span>
+                    </div>
+                    <p class="text-xs text-zinc-400 mb-1">${t.moto}</p>
+                    <div class="flex items-center gap-2 text-xs text-red-400 font-bold">
+                        <span class="material-symbols-outlined text-sm">two_wheeler</span> ${t.servicio}
+                    </div>
+                    <p class="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">schedule</span> ${t.fecha.split(' - ')[1]}
+                    </p>
+                    ${actions}
+                `;
+
+                if (cols[status]) cols[status].appendChild(card);
+            });
+
+            // Update counts
+            document.getElementById('count-requested').textContent = counts.requested;
+            document.getElementById('count-confirmed').textContent = counts.confirmed;
+            document.getElementById('count-completed').textContent = counts.completed;
+        }
+
+        // WhatsApp API Configuration
+        const WHATSAPP_API_URL = 'http://localhost:5679/webhook/api/whatsapp/send';
+        let whatsappApiEnabled = true; // Will be set based on API availability
+
+        async function enviarWhatsApp(phone, message, type = 'generic') {
+            try {
+                const res = await fetch(WHATSAPP_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, message, type })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log('WhatsApp enviado via API:', data);
+                    return { success: true, method: 'api' };
+                }
+                throw new Error('API error');
+            } catch (e) {
+                console.warn('WhatsApp API offline, usando fallback wa.me');
+                // Fallback to wa.me link
+                const url = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+                return { success: true, method: 'fallback' };
+            }
+        }
+
+        async function confirmarTurnoWsp(id, cliente, servicio, fecha, tel) {
+            cambiarEstadoTurno(id, 'confirmed');
+
+            const msg = `Hola ${cliente} 👋! Te confirmamos tu turno para *${servicio}* el día *${fecha}*. Te esperamos en el taller! 🛠️`;
+
+            const result = await enviarWhatsApp(tel, msg, 'confirmation');
+            if (result.method === 'api') {
+                showToast('✅ WhatsApp enviado automáticamente');
+            }
+        }
+
+        async function completarTurnoWsp(id, cliente, servicio, tel) {
+            cambiarEstadoTurno(id, 'completed');
+
+            const msg = `Hola ${cliente}! Tu moto ya está lista ✅ (*${servicio}*). Podes pasar a retirarla cuando quieras. Saludos!`;
+
+            const result = await enviarWhatsApp(tel, msg, 'completion');
+            if (result.method === 'api') {
+                showToast('✅ WhatsApp enviado automáticamente');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-pulse';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function cambiarEstadoTurno(id, nuevoEstado) {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                if (res.ok) {
+                    await syncTurnos();
+                    renderKanban();
+                }
+            } catch (e) {
+                console.error('Error cambiando estado', e);
+            }
+        }
+
+        async function eliminarTurno(id) {
+            if (confirm('¿Rechazar y eliminar esta solicitud?')) {
+                try {
+                    await fetch(`${SUPABASE_URL}/rest/v1/turnos?id=eq.${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    });
+                    await syncTurnos();
+                    renderKanban();
+                } catch (e) {
+                    console.error('Error eliminando turno', e);
+                }
+            }
+        }
+
+        // Sync Turnos with Supabase
+        async function syncTurnos() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos?select=*&order=created_at.desc`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        turnos = data;
+                        console.log('Turnos sincronizados con Supabase:', turnos.length);
+                    }
+                }
+            } catch (e) { console.warn('Supabase offline for turnos', e); }
+        }
+
+        // === FACTURAS ===
+        let serviciosCache = [];
+
+        async function loadServicios() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/servicios?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (res.ok) serviciosCache = await res.json();
+            } catch (e) { console.warn('Error cargando servicios', e); }
+        }
+
+        async function generarFactura(turnoId, cliente, servicio, telefono) {
+            // Buscar precio del servicio
+            await loadServicios();
+            const servicioData = serviciosCache.find(s => s.nombre === servicio) || { precio: 0 };
+            const total = servicioData.precio;
+
+            const facturaData = {
+                turno_id: turnoId,
+                cliente_nombre: cliente,
+                cliente_telefono: telefono,
+                items: JSON.stringify([{ servicio, precio: total, cantidad: 1 }]),
+                subtotal: total,
+                total: total,
+                estado: 'generada'
+            };
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/facturas`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(facturaData)
+                });
+
+                if (res.ok) {
+                    const [factura] = await res.json();
+                    showToast(`✅ Factura #${factura.numero || factura.id.slice(0, 8)} generada`);
+                } else {
+                    throw new Error('Error creando factura');
+                }
+            } catch (e) {
+                console.error('Error generando factura', e);
+                alert('Error al generar factura');
+            }
+        }
+
+        async function enviarFacturaWsp(turnoId, cliente, telefono) {
+            // Buscar factura del turno
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/facturas?turno_id=eq.${turnoId}&select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+
+                if (res.ok) {
+                    const facturas = await res.json();
+                    if (facturas.length > 0) {
+                        const f = facturas[0];
+                        const items = JSON.parse(f.items || '[]');
+                        const itemsText = items.map(i => `• ${i.servicio}: $${i.precio}`).join('%0A');
+                        const msg = `🧾 *FACTURA MOTO TALLER*%0A%0ACliente: ${cliente}%0A${itemsText}%0A%0A*TOTAL: $${f.total}*%0A%0A¡Gracias por confiar en nosotros! 🏍️`;
+                        window.open(`https://wa.me/598${telefono.replace(/\\D/g, '')}?text=${msg}`, '_blank');
+                        showToast('📱 WhatsApp abierto');
+                    } else {
+                        alert('Primero debes generar la factura');
+                    }
+                }
+            } catch (e) {
+                console.error('Error enviando factura', e);
+            }
+        }
+
+        // INIT
+        verDashboard(); // Start on Dashboard
+        syncTurnos().then(() => renderKanban());
+        setTimeout(() => {
+            syncClientes().then(() => loadDashboardStats());
+        }, 500);
+        setTimeout(chequearAlertas, 1500);
+
+        // Expose debug
+        window.retrySyncTurnos = async function () {
+            const btn = document.querySelector('button[onclick="retrySyncTurnos()"] span');
+            if (btn) btn.classList.add('animate-spin');
+            await syncTurnos();
+            renderKanban();
+            if (btn) btn.classList.remove('animate-spin');
+            showToast('🔄 Turnos sincronizados');
+        };
+        window.renderKanban = renderKanban;
+    </script>
+
+
+    <!-- ONBOARDING FAB & SCRIPT -->
+    <div class="fab-container group">
+        <div class="fab-menu">
+            <div class="fab-item" onclick="startTour()">
+                <span class="material-symbols-outlined text-yellow-400">school</span> Ver Tutorial
+            </div>
+            <div class="fab-item" onclick="window.open('https://wa.me/59899123456', '_blank')">
+                <span class="material-symbols-outlined text-green-400">support_agent</span> Soporte
+            </div>
+        </div>
+        <div class="fab-main">
+            <span class="material-symbols-outlined text-2xl">help</span>
+        </div>
+    </div>
+    <script src="onboarding.js"></script>
+</body>
+
+</html>

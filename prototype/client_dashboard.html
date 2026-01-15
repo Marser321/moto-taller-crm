@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Auto - Auxilio Mecánico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #050505;
+            background-image:
+                radial-gradient(at 0% 0%, hsla(0, 100%, 20%, 0.2) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(0, 100%, 15%, 0.2) 0px, transparent 50%);
+            color: #ffffff;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col overflow-hidden max-w-md mx-auto border-x border-zinc-900 relative">
+
+    <!-- Header -->
+    <header class="p-6 pb-2 pt-8 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                <span class="material-icons text-zinc-400">person</span>
+            </div>
+            <div>
+                <h1 class="text-sm font-bold text-zinc-400 uppercase tracking-widest">Bienvenido</h1>
+                <p class="text-xl font-bold text-white">Mateo R.</p>
+            </div>
+        </div>
+        <button class="h-10 w-10 rounded-full glass-card flex items-center justify-center text-white">
+            <span class="material-icons">notifications</span>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 space-y-8 overflow-y-auto">
+
+        <!-- CAR STATUS - HERO -->
+        <div class="relative group">
+            <div
+                class="absolute -inset-1 bg-gradient-to-r from-red-600 to-red-900 rounded-2xl blur opacity-40 group-hover:opacity-60 transition duration-1000">
+            </div>
+            <div class="relative glass-card rounded-2xl p-6 overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <span class="material-icons text-8xl">directions_car</span>
+                </div>
+
+                <div class="font-bold text-red-500 uppercase tracking-widest text-xs mb-1">Tu Vehículo</div>
+                <h2 class="text-4xl font-black italic tracking-tighter text-white mb-6">SAA 1234</h2>
+
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-sm text-zinc-400">Cobertura activa</span>
+                    <span class="text-2xl font-bold text-white">2 <span class="text-sm font-normal text-zinc-500">/
+                            3</span></span>
+                </div>
+
+                <div class="w-full bg-zinc-800 rounded-full h-2 mb-4 overflow-hidden">
+                    <div
+                        class="bg-gradient-to-r from-red-500 to-red-700 h-full rounded-full w-2/3 shadow-[0_0_15px_rgba(239,68,68,0.8)]">
+                    </div>
+                </div>
+
+                <div
+                    class="flex justify-between text-[10px] text-zinc-500 font-bold uppercase tracking-wider border-t border-white/5 pt-3 mt-4">
+                    <span>Toyota Corolla</span>
+                    <span>Vence: 12 OCT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- EMERGENCY ACTION -->
+        <div>
+            <h3 class="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-4 ml-1">Zona de Emergencia</h3>
+            <a href="sos_demo.html" class="block group relative">
+                <div
+                    class="absolute inset-0 bg-red-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition animate-pulse">
+                </div>
+                <div
+                    class="relative bg-gradient-to-br from-red-600 to-red-900 rounded-2xl p-6 flex items-center justify-between border border-red-500/30 shadow-2xl">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="h-14 w-14 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/20">
+                            <span class="material-icons text-3xl text-white">sos</span>
+                        </div>
+                        <div>
+                            <h4 class="font-black text-xl text-white tracking-wide italic uppercase">Pedir Grúa</h4>
+                            <p class="text-xs text-red-200 opacity-80">Geolocalización Automática</p>
+                        </div>
+                    </div>
+                    <span class="material-icons text-white/50 group-hover:translate-x-1 transition">chevron_right</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- SECONDARY ACTIONS -->
+        <div class="grid grid-cols-2 gap-4">
+            <button
+                class="glass-card p-4 rounded-xl flex flex-col items-center justify-center gap-3 hover:bg-white/5 transition border-zinc-800">
+                <span class="material-icons text-zinc-400">history</span>
+                <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Historial</span>
+            </button>
+            <button
+                class="glass-card p-4 rounded-xl flex flex-col items-center justify-center gap-3 hover:bg-white/5 transition border-zinc-800">
+                <span class="material-icons text-emerald-500">whatsapp</span>
+                <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Soporte</span>
+            </button>
+        </div>
+
+    </main>
+
+</body>
+
+</html>

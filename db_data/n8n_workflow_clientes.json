@@ -1,0 +1,133 @@
+{
+    "name": "API Clientes - CRUD (Fix)",
+    "active": true,
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "={{$json.method}}",
+                "path": "api/clientes",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-clientes",
+            "name": "Webhook Clientes",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                100,
+                300
+            ],
+            "webhookId": "api-clientes"
+        },
+        {
+            "parameters": {
+                "operation": "read",
+                "filePath": "/data/clientes.csv",
+                "options": {}
+            },
+            "id": "read-csv-clientes",
+            "name": "Read CSV",
+            "type": "n8n-nodes-base.readWriteFile",
+            "typeVersion": 1,
+            "position": [
+                300,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const method = $('Webhook Clientes').first().json.method;\nconst csvData = $input.first().binary.data;\nconst csvText = Buffer.from(csvData, 'base64').toString('utf8');\nconst lines = csvText.trim().split('\\n');\nconst headers = lines[0].split(',');\n\nif (method === 'GET') {\n  // --- GET ALL ---\n  const data = lines.slice(1).map(line => {\n    const values = line.split(',');\n    const obj = {};\n    headers.forEach((h, i) => obj[h.trim()] = values[i]?.trim() || '');\n    return obj;\n  });\n  return [data.map(item => ({ json: item }))]; // Output 1\n\n} else if (method === 'POST') {\n  // --- UPDATE/CREATE ---\n  // Assuming body contains unique identifier (telefono)\n  const body = $('Webhook Clientes').first().json.body;\n  const targetPhone = body.telefono || body.cliente_telefono;\n  \n  let found = false;\n  const newLines = lines.map((line, index) => {\n    if (index === 0) return line; // Header\n    const cols = line.split(',');\n    // 3rd column is telefono (index 2) based on: id,nombre,telefono,...\n    // Adjust based on actual CSV structure. Let's map it dynamically.\n    const rowObj = {};\n    headers.forEach((h, i) => rowObj[h.trim()] = cols[i]?.trim() || '');\n    \n    if (rowObj.telefono === targetPhone) {\n        // Merge updates\n        found = true;\n        return headers.map(h => body[h] !== undefined ? body[h] : rowObj[h]).join(',');\n    }\n    return line;\n  });\n  \n  if (!found && body.telefono) {\n      // Append new if not found (simple Append logic)\n      // Generate ID if needed\n      const newId = lines.length;\n      const newRow = headers.map(h => {\n          if (h === 'id') return newId;\n          return body[h] || '';\n      }).join(',');\n      newLines.push(newRow);\n  }\n  \n  const newCsv = newLines.join('\\n');\n  \n  return [// Output 2 (Post-Write)\n      {\n        json: { success: true, updated: found },\n        binary: {\n            data: Buffer.from(newCsv).toString('base64'),\n            mimeType: 'text/csv',\n            fileExtension: 'csv',\n            fileName: 'clientes.csv'\n        }\n      }\n  ];\n}"
+            },
+            "id": "process-clientes",
+            "name": "Process Data",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                500,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "write",
+                "filePath": "/data/clientes.csv",
+                "options": {}
+            },
+            "id": "write-csv-clientes",
+            "name": "Write CSV",
+            "type": "n8n-nodes-base.readWriteFile",
+            "typeVersion": 1,
+            "position": [
+                700,
+                450
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}"
+            },
+            "id": "respond-clientes",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                900,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook Clientes": {
+            "main": [
+                [
+                    {
+                        "node": "Read CSV",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read CSV": {
+            "main": [
+                [
+                    {
+                        "node": "Process Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process Data": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Write CSV",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Write CSV": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

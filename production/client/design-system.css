@@ -1,0 +1,279 @@
+/* ============================================
+   MOTO TALLER - Carbon Red Glass Design System
+   ============================================ */
+
+/* === TAILWIND CONFIG === */
+/* 
+   Add this to your <script> tag right after Tailwind import:
+   
+   tailwind.config = {
+       darkMode: "class",
+       theme: {
+           extend: {
+               colors: {
+                   "carbon-black": "#0a0a0a",
+                   "carbon-dark": "#121212",
+                   "accent-red": "#e63946",
+                   "glass-red": "rgba(230, 57, 70, 0.1)",
+               },
+               fontFamily: {
+                   "display": ["Manrope", "sans-serif"]
+               }
+           }
+       }
+   }
+*/
+
+/* === BASE STYLES === */
+body {
+    font-family: 'Manrope', sans-serif;
+    background-color: #0a0a0a;
+    color: #f1f5f9;
+    overflow-x: hidden;
+}
+
+/* Carbon Pattern Background */
+.carbon-pattern {
+    background-color: #0a0a0a;
+    background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+    background-size: 10px 10px;
+}
+
+/* Dark Overlay for images */
+.dark-overlay::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: -1;
+}
+
+/* === GLASSMORPHISM === */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-dark {
+    background: rgba(20, 20, 20, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-red {
+    background: rgba(230, 57, 70, 0.15);
+    backdrop-filter: blur(8px);
+    border-left: 4px solid #e63946;
+    box-shadow: 0 0 15px rgba(230, 57, 70, 0.2);
+}
+
+.glass-red {
+    background: rgba(230, 57, 70, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(230, 57, 70, 0.2);
+}
+
+/* === GLOW EFFECTS === */
+.glow-red {
+    box-shadow: 0 0 20px rgba(230, 57, 70, 0.4);
+    border: 1px solid rgba(230, 57, 70, 0.8);
+}
+
+.glow-red-sm {
+    box-shadow: 0 0 10px rgba(230, 57, 70, 0.3);
+}
+
+.glow-red-lg {
+    box-shadow: 0 0 30px rgba(230, 57, 70, 0.5);
+}
+
+.text-glow-red {
+    text-shadow: 0 0 10px rgba(230, 57, 70, 0.5);
+}
+
+/* === BUTTONS === */
+.btn-primary {
+    background: #e63946;
+    color: white;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 15px rgba(230, 57, 70, 0.3);
+}
+
+.btn-primary:hover {
+    background: #d62839;
+    box-shadow: 0 0 25px rgba(230, 57, 70, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-glass {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(230, 57, 70, 0.5);
+}
+
+/* === INPUTS === */
+.input-glass {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: white;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.input-glass::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.input-glass:focus {
+    outline: none;
+    border-color: rgba(230, 57, 70, 0.6);
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+}
+
+/* === STATUS INDICATORS === */
+.status-active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-warning {
+    background: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.status-expired {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* === LIQUID FILL GAUGE === */
+.liquid-gauge {
+    position: relative;
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.liquid-fill {
+    background: linear-gradient(180deg, #ff4d5a 0%, #9e1b24 100%);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    transition: height 0.5s ease;
+}
+
+.liquid-fill::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255,255,255,0.1);
+    border-radius: 40%;
+    animation: wave 3s infinite linear;
+}
+
+@keyframes wave {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(230, 57, 70, 0.8);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+    animation: pulseGlow 2s infinite;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #e63946;
+}
+
+/* === UTILITY CLASSES === */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

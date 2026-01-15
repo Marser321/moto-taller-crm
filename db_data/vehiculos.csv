@@ -1,0 +1,4 @@
+Vehiculo_ID,Cliente_Ref,Matricula,Marca_Modelo,Anio,Color,Foto_Vehiculo
+VEH_001,CLI_001,SAA 1234,Toyota Corolla,2020,Blanco,
+VEH_002,CLI_002,SBB 5678,Chevrolet Onix,2022,Gris,
+VEH_003,CLI_001,SCC 9012,Fiat Strada,2019,Rojo,

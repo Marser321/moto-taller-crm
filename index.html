@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auxilio Mecánico - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #000000;
+            background-image: radial-gradient(circle at 50% 0%, #2a0a0a 0%, #000000 70%);
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            color: #EF4444;
+        }
+
+        .nav-item.active span {
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col overflow-hidden max-w-md mx-auto border-x border-zinc-900 shadow-2xl relative">
+
+    <!-- Header -->
+    <header class="p-4 glass-panel sticky top-0 z-10 border-b border-white/5">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="font-bold text-lg text-white tracking-wide uppercase italic">Auxilio Mecánico</h1>
+                <p class="text-[10px] text-red-500 font-bold tracking-widest uppercase">Panel Admin</p>
+            </div>
+            <div
+                class="h-9 w-9 rounded-full bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-xs font-bold border border-red-500/30">
+                JD
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-1 overflow-y-auto p-4 space-y-5 pb-24 scroll-smooth">
+        <!-- VISTA DASHBOARD -->
+        <div id="view-dashboard" class="animate-fade-in">
+            <!-- Widgets -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+                    <div
+                        class="absolute -right-6 -top-6 w-20 h-20 bg-red-600/20 rounded-full blur-2xl group-hover:bg-red-600/30 transition">
+                    </div>
+                    <div class="flex items-start justify-between relative z-10">
+                        <span class="material-icons text-red-500">paid</span>
+                        <span
+                            class="text-[10px] text-zinc-400 border border-zinc-800 px-2 py-0.5 rounded-full uppercase">Anual</span>
+                    </div>
+                    <div class="mt-4 relative z-10">
+                        <h3 class="text-3xl font-bold text-white">145</h3>
+                        <p class="text-xs text-zinc-400 font-medium">Suscripciones</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl relative overflow-hidden group border-l-2 border-l-red-500">
+                    <div
+                        class="absolute -right-6 -top-6 w-20 h-20 bg-red-600/20 rounded-full blur-2xl group-hover:bg-red-600/30 transition">
+                    </div>
+                    <div class="flex items-start justify-between relative z-10">
+                        <span class="material-icons text-red-500 animate-pulse">timer</span>
+                        <span
+                            class="text-[10px] text-red-400 bg-red-900/20 px-2 py-0.5 rounded-full uppercase font-bold">Urgente</span>
+                    </div>
+                    <div class="mt-4 relative z-10">
+                        <h3 class="text-3xl font-bold text-white">12</h3>
+                        <p class="text-xs text-zinc-400 font-medium">Por Vencer</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4 pl-1">Actividad Reciente</h2>
+            <div class="space-y-3">
+                <div
+                    class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-white/5 transition cursor-pointer">
+                    <div
+                        class="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                        <span class="material-icons text-sm text-zinc-400">engineering</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-white">Cambio de Aceite</h4>
+                        <p class="text-xs text-zinc-500">Toyota Corolla • Hace 2h</p>
+                    </div>
+                    <span class="text-xs font-bold text-emerald-500">+10 pts</span>
+                </div>
+                <div
+                    class="glass-panel p-4 rounded-xl flex items-center gap-4 hover:bg-white/5 transition cursor-pointer">
+                    <div
+                        class="h-10 w-10 rounded-full bg-red-900/20 flex items-center justify-center border border-red-500/20">
+                        <span class="material-icons text-sm text-red-500">autorenew</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-white">Renovación Plan</h4>
+                        <p class="text-xs text-zinc-500">Chevrolet Aveo • Ayer</p>
+                    </div>
+                    <span class="text-xs font-bold text-white">$U 5.500</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA VEHICULOS (FLOTA) -->
+        <div id="view-vehicles" class="hidden">
+            <div class="relative mb-5">
+                <span class="material-icons absolute left-4 top-3.5 text-zinc-500 text-lg">search</span>
+                <input type="text" placeholder="Buscar..."
+                    class="w-full bg-zinc-900/50 text-white pl-12 pr-4 py-3 rounded-full border border-zinc-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none text-sm transition-all placeholder-zinc-600 backdrop-blur-sm">
+            </div>
+
+            <div class="space-y-4">
+                <!-- Card 1: Active -->
+                <div class="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-500 to-transparent">
+                    </div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white tracking-tight">SAA 1234</h3>
+                            <p class="text-xs text-emerald-500 font-bold uppercase tracking-wide mt-1">Activo</p>
+                        </div>
+                        <div class="bg-zinc-800/80 px-2 py-1 rounded text-[10px] text-zinc-400">2 Auxilios</div>
+                    </div>
+                    <p class="text-sm text-zinc-300">Sofia Ramirez</p>
+                    <p class="text-xs text-zinc-500 mt-0.5">Toyota Corolla 2021</p>
+
+                    <div class="mt-4 pt-3 border-t border-white/5 flex gap-2">
+                        <button
+                            class="flex-1 text-xs py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white transition">Historial</button>
+                        <button
+                            class="flex-1 text-xs py-2 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition flex items-center justify-center gap-1">
+                            <span class="material-icons text-[14px]">whatsapp</span> Contactar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 2: Expired -->
+                <div class="glass-panel p-5 rounded-2xl relative overflow-hidden group border-red-500/30">
+                    <div class="absolute inset-0 bg-red-900/5 pointer-events-none"></div>
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-red-600 to-red-900"></div>
+
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-white tracking-tight">LMN 9012</h3>
+                            <p class="text-xs text-red-500 font-bold uppercase tracking-wide mt-1">Vencido</p>
+                        </div>
+                        <div class="bg-red-900/40 px-2 py-1 rounded text-[10px] text-red-300 border border-red-900/50">⚠
+                            Atención</div>
+                    </div>
+                    <p class="text-sm text-zinc-300">Ana Fernandez</p>
+                    <p class="text-xs text-zinc-500 mt-0.5">Nissan Sentra 2018</p>
+
+                    <div class="mt-4 pt-3 border-t border-white/5">
+                        <button
+                            class="w-full text-xs py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-red-800 text-white font-bold shadow-lg shadow-red-900/30 hover:shadow-red-900/50 transition tracking-wide">
+                            RENOVAR SUSCRIPCIÓN
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav
+        class="glass-panel border-t border-white/5 p-2 flex justify-around items-center sticky bottom-0 z-30 pb-safe backdrop-blur-xl bg-black/60">
+        <button onclick="switchView('dashboard')"
+            class="nav-item active flex flex-col items-center p-2 text-zinc-600 hover:text-white transition w-16 group"
+            id="nav-dashboard">
+            <span class="material-icons group-active:scale-90 transition">dashboard</span>
+            <span class="text-[9px] mt-1 font-bold uppercase tracking-wider">Inicio</span>
+        </button>
+        <button onclick="switchView('vehicles')"
+            class="nav-item flex flex-col items-center p-2 text-zinc-600 hover:text-white transition w-16 group"
+            id="nav-vehicles">
+            <span class="material-icons group-active:scale-90 transition">directions_car</span>
+            <span class="text-[9px] mt-1 font-bold uppercase tracking-wider">Flota</span>
+        </button>
+        <button class="nav-item flex flex-col items-center p-2 text-zinc-600 hover:text-white transition w-16 group">
+            <span class="material-icons group-active:scale-90 transition">settings</span>
+            <span class="text-[9px] mt-1 font-bold uppercase tracking-wider">Ajustes</span>
+        </button>
+    </nav>
+
+    <script>
+        function switchView(viewName) {
+            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + viewName).classList.add('active');
+
+            const view = document.getElementById('view-' + viewName);
+            view.classList.remove('animate-fade-in');
+            void view.offsetWidth;
+            view.classList.add('animate-fade-in');
+        }
+    </script>
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</body>
+
+</html>

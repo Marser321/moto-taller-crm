@@ -1,0 +1,22 @@
+{
+    "name": "Moto Taller CRM",
+    "short_name": "MotoTaller",
+    "description": "Gestión de turnos y estado de motocicleta",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#ef4444",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "../engine_bg.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "../engine_bg.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
