@@ -2499,19 +2499,24 @@
     </div>
 
     <!-- ONBOARDING FAB & SCRIPT -->
-    <div class="fab-container group">
+    <div id="fab-container" class="fab-container">
         <div class="fab-menu">
-            <div class="fab-item" onclick="startTour()">
+            <div class="fab-item" onclick="startTour(); toggleFab();">
                 <span class="material-symbols-outlined text-yellow-400">school</span> Ver Tutorial
             </div>
-            <div class="fab-item" onclick="window.open('https://wa.me/59899123456', '_blank')">
+            <div class="fab-item" onclick="window.open('https://wa.me/59899123456', '_blank'); toggleFab();">
                 <span class="material-symbols-outlined text-green-400">support_agent</span> Soporte
             </div>
         </div>
-        <div class="fab-main">
+        <div class="fab-main" onclick="toggleFab()">
             <span class="material-symbols-outlined text-2xl">help</span>
         </div>
     </div>
+    <script>
+        function toggleFab() {
+            document.getElementById('fab-container').classList.toggle('open');
+        }
+    </script>
     <script src="onboarding.js"></script>
 </body>
 

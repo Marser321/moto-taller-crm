@@ -58,7 +58,7 @@
     /* 0.5s delay before hiding */
 }
 
-.fab-container:hover .fab-menu {
+.fab-container.open .fab-menu {
     pointer-events: auto;
     opacity: 1;
     transform: translateY(0);
