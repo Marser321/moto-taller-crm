@@ -295,6 +295,11 @@
                     <span class="material-symbols-outlined text-xl">calendar_month</span>
                     <span class="font-medium text-sm">Gestión Turnos</span>
                 </button>
+                <button onclick="verSeccionFacturas()" id="nav-facturas"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">receipt_long</span>
+                    <span class="font-medium text-sm">Facturas</span>
+                </button>
             </nav>
 
             <!-- STATS MINI -->
@@ -513,6 +518,46 @@
         </main>
     </div>
 
+    <!-- SECCIÓN FACTURAS -->
+    <div id="facturas-section" class="hidden mt-6 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-500">receipt_long</span>
+                Gestión de Facturas
+            </h3>
+            <button onclick="abrirModalFactura()"
+                class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-red-900/30">
+                <span class="material-symbols-outlined text-sm">add</span> NUEVA FACTURA
+            </button>
+        </div>
+
+        <div class="glass-panel rounded-2xl overflow-hidden">
+            <div class="p-4 border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-lg font-bold">Historial de Facturación</h3>
+                <input type="text" id="buscar-factura" placeholder="Buscar..." onkeyup="filtrarFacturas()"
+                    class="glass-input rounded-lg px-4 py-2 text-sm w-64">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-xs text-zinc-500 uppercase border-b border-white/5 bg-black/40">
+                            <th class="p-4">Fecha</th>
+                            <th class="p-4">Cliente</th>
+                            <th class="p-4">Items / Servicios</th>
+                            <th class="p-4">Total</th>
+                            <th class="p-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-facturas" class="text-sm divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+            <div id="tabla-facturas-vacia" class="p-8 text-center text-zinc-600 hidden">
+                <span class="material-symbols-outlined text-4xl mb-2">receipt</span>
+                <p>No hay facturas registradas</p>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL REGISTRAR AUXILIO -->
     <div id="modal-auxilio"
         class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -611,6 +656,67 @@
                     <button type="button" onclick="cerrarModalTurno()" class="px-4 py-2 text-zinc-400">Cancelar</button>
                     <button type="submit" id="btn-guardar-turno"
                         class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold">GUARDAR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVA FACTURA -->
+    <div id="modal-factura"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="cerrarModalFactura()" class="absolute right-4 top-4 text-zinc-500 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-sm">receipt_long</span>
+                </span>
+                Nueva Factura
+            </h2>
+            <form id="form-factura" class="space-y-4">
+                <div>
+                    <label class="text-xs text-zinc-400">Cliente</label>
+                    <div class="flex gap-2">
+                        <select name="cliente" id="factura-cliente" class="w-full glass-input p-3 rounded-lg mt-1"
+                            required>
+                            <option value="">Seleccionar cliente...</option>
+                        </select>
+                        <input type="text" name="cliente_manual" id="factura-cliente-manual"
+                            placeholder="O escribir nombre..." class="w-full glass-input p-3 rounded-lg mt-1 hidden">
+                        <button type="button" onclick="toggleClienteManual()"
+                            class="bg-zinc-800 p-3 rounded-lg mt-1 hover:bg-zinc-700" title="Alternar Manual/Lista">
+                            <span class="material-symbols-outlined">swap_horiz</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-400">Fecha</label>
+                        <input type="date" name="fecha" class="w-full glass-input p-3 rounded-lg mt-1" required>
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">Total ($)</label>
+                        <input type="number" name="total"
+                            class="w-full glass-input p-3 rounded-lg mt-1 font-bold text-green-400" placeholder="0.00"
+                            required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs text-zinc-400">Items / Descripción</label>
+                    <textarea name="items" class="w-full glass-input p-3 rounded-lg mt-1 h-32 resize-none"
+                        placeholder="- Cambio de Aceite: $1200&#10;- Filtro: $300" required></textarea>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="cerrarModalFactura()"
+                        class="px-4 py-2 text-zinc-400 hover:text-white transition">Cancelar</button>
+                    <button type="submit" id="btn-guardar-factura"
+                        class="bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg shadow-red-900/30 transition flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">send</span> GUARDAR Y ENVIAR
+                    </button>
                 </div>
             </form>
         </div>
@@ -1759,7 +1865,8 @@
 
                 // Get clean phone (mock logic: look up client in main DB or use dummy)
                 // For this demo we'll use a placeholder or try to find client
-                const clientData = clientes.find(c => c.nombre === t.cliente) || { telefono: '59899123456' };
+                const clientData = clientes.find(c => c.nombre === t.cliente) || { telefono: '59899123456', nombre: t.cliente || 'Cliente Desconocido' };
+                const clientName = clientData.nombre;
                 const tel = clientData.telefono;
 
                 let actions = '';
@@ -1791,7 +1898,7 @@
 
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-1">
-                        <span class="font-bold text-white text-sm">${t.cliente}</span>
+                        <span class="font-bold text-white text-sm">${clientName}</span>
                         <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-zinc-400">${t.fecha.split(' - ')[0]}</span>
                     </div>
                     <p class="text-xs text-zinc-400 mb-1">${t.moto}</p>
@@ -1970,6 +2077,8 @@
                 if (res.ok) {
                     const [factura] = await res.json();
                     showToast(`✅ Factura #${factura.numero || factura.id.slice(0, 8)} generada`);
+                    // AUTO OPEN WHATSAPP
+                    await enviarFacturaWsp(factura.turno_id, factura.cliente_nombre, factura.cliente_telefono);
                 } else {
                     throw new Error('Error creando factura');
                 }
@@ -2004,11 +2113,203 @@
             }
         }
 
+        // ==========================================
+        // GESTIÓN DE FACTURAS (NUEVO)
+        // ==========================================
+        let facturas = [];
+
+        async function syncFacturas() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/facturas?select=*&order=created_at.desc`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (res.ok) {
+                    facturas = await res.json();
+                    renderFacturas();
+                    console.log(`Facturas sincronizadas: ${facturas.length}`);
+                }
+            } catch (e) { console.error('Error syncing facturas:', e); }
+        }
+
+        function renderFacturas() {
+            const tbody = document.getElementById('tabla-facturas');
+            const empty = document.getElementById('tabla-facturas-vacia');
+            tbody.innerHTML = '';
+
+            if (facturas.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            const filtro = document.getElementById('buscar-factura').value.toLowerCase();
+
+            facturas.forEach(f => {
+                const nombre = (f.cliente_nombre || 'Desconocido').toLowerCase();
+                if (filtro && !nombre.includes(filtro)) return;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/5 transition border-b border-white/5';
+
+                // Format Items
+                let itemsDesc = '';
+                try {
+                    const items = typeof f.items === 'string' ? JSON.parse(f.items) : f.items;
+                    itemsDesc = Array.isArray(items)
+                        ? items.map(i => `<div class="text-xs text-zinc-400">• ${i.servicio || i.descripcion || 'Item'} ($${i.precio})</div>`).join('')
+                        : f.items;
+                } catch (e) { itemsDesc = f.items; }
+
+                tr.innerHTML = `
+                    <td class="p-4 text-zinc-400 font-mono text-xs">${new Date(f.created_at || Date.now()).toLocaleDateString()}</td>
+                    <td class="p-4 font-bold text-white">${f.cliente_nombre}</td>
+                    <td class="p-4">${itemsDesc}</td>
+                    <td class="p-4 font-bold text-green-400">$${f.total}</td>
+                    <td class="p-4 text-right flex justify-end gap-2">
+                        <button onclick="eliminarFactura('${f.id}')" class="text-zinc-500 hover:text-red-500 p-2 transition" title="Eliminar">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                        <button onclick="reenviarFactura('${f.cliente_telefono}', '${f.total}', '${f.cliente_nombre}')" class="text-zinc-500 hover:text-green-500 p-2 transition" title="Reenviar WhatsApp">
+                            <span class="material-symbols-outlined">share</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filtrarFacturas() { renderFacturas(); }
+
+        function verSeccionFacturas() {
+            ['seccion-dashboard', 'seccion-clientes', 'historial-section', 'turnos-section', 'facturas-section'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById('facturas-section').classList.remove('hidden');
+
+            // Update active nav
+            document.querySelectorAll('nav button').forEach(b => {
+                b.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition';
+            });
+            const btn = document.getElementById('nav-facturas');
+            if (btn) btn.className = 'w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-red-600/10 text-red-500 border border-red-600/20 transition';
+        }
+
+        function abrirModalFactura() {
+            const modal = document.getElementById('modal-factura');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Populate select
+            const select = document.getElementById('factura-cliente');
+            select.innerHTML = '<option value="">Seleccionar cliente...</option>';
+            if (typeof clientes !== 'undefined') {
+                clientes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.nombre + '|' + c.telefono;
+                    opt.textContent = `${c.nombre} (${c.telefono})`;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function cerrarModalFactura() {
+            document.getElementById('modal-factura').classList.add('hidden');
+            document.getElementById('modal-factura').classList.remove('flex');
+            document.getElementById('form-factura').reset();
+        }
+
+        function toggleClienteManual() {
+            document.getElementById('factura-cliente').classList.toggle('hidden');
+            document.getElementById('factura-cliente-manual').classList.toggle('hidden');
+        }
+
+        document.getElementById('form-factura').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-guardar-factura');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Guardando...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            let nombre, telefono;
+
+            if (!document.getElementById('factura-cliente').classList.contains('hidden') && formData.get('cliente')) {
+                const parts = formData.get('cliente').split('|');
+                nombre = parts[0];
+                telefono = parts[1];
+            } else {
+                nombre = formData.get('cliente_manual') || 'Consumidor Final';
+                telefono = '000000000';
+            }
+
+            const itemsText = formData.get('items'); // Raw text
+            const total = parseFloat(formData.get('total'));
+
+            // Parse text to simple items
+            const items = [{ descripcion: itemsText, precio: total }];
+
+            const facturaData = {
+                cliente_nombre: nombre,
+                cliente_telefono: telefono,
+                items: JSON.stringify(items),
+                total: total,
+                estado: 'generada'
+            };
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/facturas`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(facturaData)
+                });
+
+                if (res.ok) {
+                    await syncFacturas();
+                    cerrarModalFactura();
+                    showToast('✅ Factura guardada');
+                    // Send WhatsApp
+                    reenviarFactura(telefono, total, nombre, itemsText);
+                } else {
+                    alert('Error guardando factura');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de conexión');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        async function eliminarFactura(id) {
+            if (!confirm('¿Eliminar esta factura permanentemente?')) return;
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/facturas?id=eq.${id}`, {
+                    method: 'DELETE',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                syncFacturas();
+                showToast('🗑️ Factura eliminada');
+            } catch (e) { console.error(e); }
+        }
+
+        function reenviarFactura(telefono, total, nombre, itemsText) {
+            const msg = `🧾 *FACTURA MOTO TALLER*%0A%0ACliente: ${nombre}%0A${itemsText ? itemsText.replace(/\n/g, '%0A') : 'Ver detalles'}%0A%0A*TOTAL: $${total}*%0A%0A¡Gracias por su visita! 🏍️`;
+            window.open(`https://wa.me/598${telefono.replace(/\D/g, '')}?text=${msg}`, '_blank');
+        }
+
         // INIT
         verDashboard(); // Start on Dashboard
         syncTurnos().then(() => renderKanban());
         setTimeout(() => {
             syncClientes().then(() => loadDashboardStats());
+            syncFacturas();
         }, 500);
         setTimeout(chequearAlertas, 1500);
 
