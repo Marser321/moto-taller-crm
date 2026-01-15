@@ -95,12 +95,13 @@
     backdrop-filter: blur(2px);
     opacity: 0;
     transition: opacity 0.5s ease;
-    pointer-events: auto;
-    /* Blocks interaction with background */
+    pointer-events: none;
+    /* Blocks interaction with background ONLY when active */
 }
 
 .tour-overlay.active {
     opacity: 1;
+    pointer-events: auto;
 }
 
 /* HIGHLIGHT */
