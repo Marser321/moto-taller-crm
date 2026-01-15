@@ -628,8 +628,7 @@
                     // Reset UI
                     icon.classList.remove('hidden');
                     spinner.classList.add('hidden');
-                    text.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span> Ubicación GPS por
-    WhatsApp';
+                    text.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span> Ubicación GPS por WhatsApp';
 
                     window.open(whatsappUrl, '_blank');
                 },
@@ -644,8 +643,7 @@
                         // Reset UI
                         icon.classList.remove('hidden');
                         spinner.classList.add('hidden');
-                        text.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span> Ubicación GPS por
-    WhatsApp';
+                        text.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span> Ubicación GPS por WhatsApp';
 
                         window.open(whatsappUrl, '_blank');
                     },
@@ -892,8 +890,9 @@
             const modalContent = document.getElementById('km-modal-content');
             const input = document.getElementById('input-km');
             if (show) {
-                modal.classList.remove('hidden'); // Trigger
-                    reflow void modal.offsetWidth; modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.remove('hidden'); // Trigger reflow
+                void modal.offsetWidth;
+                modal.classList.remove('opacity-0', 'pointer-events-none');
                 modalContent.classList.remove('translate-y-full'); modalContent.classList.add('sm:translate-y-10');
                 if (cliente) input.value = cliente.km_current; setTimeout(() => input.focus(), 300);
             }
