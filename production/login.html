@@ -129,6 +129,9 @@
         document.getElementById('phone').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') login();
         });
+
+        // Ensure button click works
+        document.getElementById('btn-login').addEventListener('click', login);
     </script>
 </body>
 

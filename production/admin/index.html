@@ -18,7 +18,7 @@
     <script>
         // SUPABASE CONFIG
         const SUPABASE_URL = 'https://wygkeihgmolampvaonpr.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5Z2tlaWhnbW9sYW1wdmFvbnprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTE5MTgsImV4cCI6MjA4NDAyNzkxOH0.kJiWLnzcTz2Wj6BoyOfJl19ovMmVc2_xvyhFABtqq_0';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5Z2tlaWhnbW9sYW1wdmFvbnByIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NTE5MTgsImV4cCI6MjA4NDAyNzkxOH0.kJiWLnzcTz2Wj6BoyOfJl19ovMmVc2_xvyhFABtqq_0';
 
         // Tailwind Config
         tailwind.config = {
@@ -1582,6 +1582,7 @@
 
         // === DASHBOARD ===
         async function loadDashboardStats() {
+            const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
             // Stats from memory/cache first for speed
             const activeClients = clientes.filter(c => {
                 const dias = diasRestantes(c.fecha_vencimiento);
