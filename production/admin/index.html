@@ -120,6 +120,7 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
 <body class="flex flex-col h-screen overflow-hidden">
@@ -2077,7 +2078,7 @@
                 if (res.ok) {
                     const [factura] = await res.json();
                     showToast(`✅ Factura #${factura.numero || factura.id.slice(0, 8)} generada`);
-                    // AUTO OPEN WHATSAPP
+                    // AUTO OPEN WHATSAPP WITH IMAGE
                     await enviarFacturaWsp(factura.turno_id, factura.cliente_nombre, factura.cliente_telefono);
                 } else {
                     throw new Error('Error creando factura');
@@ -2088,7 +2089,14 @@
             }
         }
 
-        async function enviarFacturaWsp(turnoId, cliente, telefono) {
+        async function enviarFacturaWsp(turnoId, cliente, telefono, itemsText = null, total = null) {
+            // If manual params provided, use them directly (fallback mainly)
+            if (itemsText && total) {
+                const msg = `🧾 *FACTURA MOTO TALLER*%0A%0ACliente: ${cliente}%0A${itemsText.replace(/\n/g, '%0A')}%0A%0A*TOTAL: $${total}*%0A%0A¡Adjunto encontrarás tu factura detallada! 📎`;
+                window.open(`https://wa.me/598${telefono.replace(/\D/g, '')}?text=${msg}`, '_blank');
+                return;
+            }
+
             // Buscar factura del turno
             try {
                 const res = await fetch(`${SUPABASE_URL}/rest/v1/facturas?turno_id=eq.${turnoId}&select=*`, {
@@ -2099,11 +2107,21 @@
                     const facturas = await res.json();
                     if (facturas.length > 0) {
                         const f = facturas[0];
-                        const items = JSON.parse(f.items || '[]');
-                        const itemsText = items.map(i => `• ${i.servicio}: $${i.precio}`).join('%0A');
-                        const msg = `🧾 *FACTURA MOTO TALLER*%0A%0ACliente: ${cliente}%0A${itemsText}%0A%0A*TOTAL: $${f.total}*%0A%0A¡Gracias por confiar en nosotros! 🏍️`;
-                        window.open(`https://wa.me/598${telefono.replace(/\\D/g, '')}?text=${msg}`, '_blank');
-                        showToast('📱 WhatsApp abierto');
+
+                        // GENERATE IMAGE FIRST
+                        await generarImagenFactura(f);
+
+                        const items = typeof f.items === 'string' ? JSON.parse(f.items) : f.items;
+                        const itemsStr = Array.isArray(items) ? items.map(i => `• ${i.servicio || i.descripcion}: $${i.precio}`).join('%0A') : f.items;
+
+                        const msg = `🧾 *FACTURA MOTO TALLER*%0A%0ACliente: ${cliente}%0A${itemsStr}%0A%0A*TOTAL: $${f.total}*%0A%0A¡Adjunto encontrarás tu factura detallada! 📎`;
+
+                        // Wait a bit for download to start then open WSP
+                        setTimeout(() => {
+                            window.open(`https://wa.me/598${telefono.replace(/\D/g, '')}?text=${msg}`, '_blank');
+                            showToast('📱 WhatsApp abierto - Adjunta la imagen descargada');
+                        }, 1500);
+
                     } else {
                         alert('Primero debes generar la factura');
                     }
@@ -2117,6 +2135,57 @@
         // GESTIÓN DE FACTURAS (NUEVO)
         // ==========================================
         let facturas = [];
+
+        async function generarImagenFactura(factura) {
+            const tpl = document.getElementById('invoice-template');
+            const items = typeof factura.items === 'string' ? JSON.parse(factura.items) : factura.items;
+
+            // Populate Template
+            document.getElementById('inv-fecha').textContent = new Date().toLocaleDateString();
+            document.getElementById('inv-nro').textContent = `#${factura.numero || factura.id.slice(0, 6).toUpperCase()}`;
+            document.getElementById('inv-cliente').textContent = factura.cliente_nombre;
+            document.getElementById('inv-telefono').textContent = factura.cliente_telefono;
+            document.getElementById('inv-total-main').textContent = `$${factura.total}`;
+
+            const tbody = document.getElementById('inv-items');
+            tbody.innerHTML = '';
+            if (Array.isArray(items)) {
+                items.forEach(i => {
+                    tbody.innerHTML += `
+                        <tr class="border-b border-white/10">
+                            <td class="py-3 text-sm">${i.servicio || i.descripcion}</td>
+                            <td class="py-3 text-sm text-right text-zinc-400">1</td>
+                            <td class="py-3 text-sm text-right font-mono">$${i.precio}</td>
+                        </tr>
+                     `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-3 text-sm">${factura.items}</td></tr>`;
+            }
+
+            // Show temporarily off-screen but visible for canvas
+            tpl.style.display = 'block';
+
+            try {
+                const canvas = await html2canvas(tpl, {
+                    backgroundColor: '#000000',
+                    scale: 2 // High res
+                });
+
+                // Download
+                const link = document.createElement('a');
+                link.download = `Factura_${factura.cliente_nombre.replace(/\s+/g, '_')}_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('⬇️ Imagen descargada');
+            } catch (e) {
+                console.error('Error generando imagen', e);
+                alert('Error al generar la imagen de la factura');
+            } finally {
+                tpl.style.display = 'none';
+            }
+        }
+
 
         async function syncFacturas() {
             try {
@@ -2299,9 +2368,23 @@
             } catch (e) { console.error(e); }
         }
 
-        function reenviarFactura(telefono, total, nombre, itemsText) {
-            const msg = `🧾 *FACTURA MOTO TALLER*%0A%0ACliente: ${nombre}%0A${itemsText ? itemsText.replace(/\n/g, '%0A') : 'Ver detalles'}%0A%0A*TOTAL: $${total}*%0A%0A¡Gracias por su visita! 🏍️`;
-            window.open(`https://wa.me/598${telefono.replace(/\D/g, '')}?text=${msg}`, '_blank');
+        function reenviarFactura(telefono, total, nombre, itemsText = null) {
+            // Re-fetch object or construct mock to generate image
+            // ideally pass ID, but for quick fix let's find it in local cache 'facturas'
+            const f = facturas.find(x => x.cliente_nombre === nombre && x.total == total) || {
+                cliente_nombre: nombre,
+                cliente_telefono: telefono,
+                total: total,
+                items: itemsText || 'Servicios Varios',
+                id: 'REF-' + Date.now()
+            };
+
+            generarImagenFactura(f).then(() => {
+                const msg = `🧾 *FACTURA MOTO TALLER*%0A%0ACliente: ${nombre}%0ASee adjunto.%0A%0A*TOTAL: $${total}*%0A%0A¡Gracias por su visita! 🏍️`;
+                setTimeout(() => {
+                    window.open(`https://wa.me/598${telefono.replace(/\D/g, '')}?text=${msg}`, '_blank');
+                }, 1000);
+            });
         }
 
         // INIT
@@ -2325,6 +2408,69 @@
         window.renderKanban = renderKanban;
     </script>
 
+
+    <!-- TEMPLATE FACTURA (OCULTO) -->
+    <div id="invoice-template" class="fixed top-0 left-0 bg-[#0a0a0a] text-white w-[600px] p-8 hidden"
+        style="z-index: -1;">
+        <!-- Header -->
+        <div class="flex justify-between items-start border-b border-red-600/50 pb-6 mb-6">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div
+                        class="w-12 h-12 bg-gradient-to-br from-red-600 to-red-800 rounded-xl flex items-center justify-center font-black italic text-2xl shadow-lg">
+                        M</div>
+                    <div>
+                        <h1 class="font-bold text-2xl tracking-widest uppercase">MOTO <span
+                                class="text-red-500">CRM</span></h1>
+                        <p class="text-xs text-zinc-500 tracking-wider">TALLER ESPECIALIZADO</p>
+                    </div>
+                </div>
+                <p class="text-zinc-500 text-sm">Av. Italia 1234, Montevideo</p>
+                <p class="text-zinc-500 text-sm">Tel: 099 123 456</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-4xl font-black text-white/10 uppercase">Factura</h2>
+                <p class="text-xl font-mono text-red-500 font-bold" id="inv-nro">#00001</p>
+                <p class="text-sm text-zinc-400 mt-1" id="inv-fecha">12/02/2026</p>
+            </div>
+        </div>
+
+        <!-- Client Info -->
+        <div class="bg-zinc-900/50 rounded-xl p-4 mb-8 border border-white/5">
+            <p class="text-xs text-zinc-500 uppercase font-bold mb-2">Cliente</p>
+            <h3 class="text-xl font-bold text-white mb-1" id="inv-cliente">Juan Pérez</h3>
+            <p class="text-sm text-zinc-400 font-mono" id="inv-telefono">099123456</p>
+        </div>
+
+        <!-- Items -->
+        <table class="w-full mb-8">
+            <thead>
+                <tr class="text-xs text-red-500 uppercase border-b border-red-500/20 text-left">
+                    <th class="py-2 font-bold">Descripción</th>
+                    <th class="py-2 font-bold text-right">Cant.</th>
+                    <th class="py-2 font-bold text-right">Precio</th>
+                </tr>
+            </thead>
+            <tbody id="inv-items">
+                <!-- Items injected here -->
+            </tbody>
+        </table>
+
+        <!-- Total -->
+        <div class="flex justify-end mb-12">
+            <div class="text-right">
+                <p class="text-sm text-zinc-500 uppercase font-bold mb-1">Total a Pagar</p>
+                <p class="text-4xl font-black text-white" id="inv-total-main">$15.000</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center pt-6 border-t border-white/5">
+            <p class="text-zinc-600 text-xs italic">Gracias por confiar en nosotros.</p>
+            <p class="text-zinc-700 text-[10px] mt-1">Este documento no es una factura oficial de DGI, es un comprobante
+                interno.</p>
+        </div>
+    </div>
 
     <!-- ONBOARDING FAB & SCRIPT -->
     <div class="fab-container group">
