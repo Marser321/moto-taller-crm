@@ -1082,7 +1082,10 @@
                     body: JSON.stringify(turnoData)
                 });
 
-                if (!res.ok) throw new Error('Supabase error');
+                if (!res.ok) {
+                    const errorBody = await res.text();
+                    throw new Error(`Status ${res.status}: ${errorBody || res.statusText}`);
+                }
 
                 btn.textContent = '✓ GUARDADO';
                 setTimeout(async () => {
@@ -1096,7 +1099,7 @@
                 }, 600);
             } catch (err) {
                 console.error('Error guardando turno', err);
-                alert('Error al guardar turno');
+                alert('Error al guardar turno: ' + err.message);
                 btn.textContent = 'GUARDAR';
                 btn.disabled = false;
             }
