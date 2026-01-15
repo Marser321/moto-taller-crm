@@ -1054,11 +1054,17 @@
 
             const formData = new FormData(e.target);
             const clienteId = formData.get('cliente');
+            if (!clienteId) {
+                alert('Por favor selecciona un cliente.');
+                btn.textContent = 'GUARDAR';
+                btn.disabled = false;
+                return;
+            }
             const selectedOption = document.querySelector(`#turno-cliente option[value="${clienteId}"]`);
 
             const turnoData = {
-                cliente: selectedOption.dataset.nombre,
-                moto: selectedOption.dataset.moto,
+                cliente: selectedOption ? selectedOption.dataset.nombre : 'Cliente Manual',
+                moto: selectedOption ? selectedOption.dataset.moto : 'Moto Manual',
                 servicio: formData.get('servicio'),
                 fecha: `${formData.get('fecha')} - ${formData.get('hora')}`,
                 estado: 'requested'
@@ -2215,8 +2221,8 @@
             const filtro = document.getElementById('buscar-factura').value.toLowerCase();
 
             facturas.forEach(f => {
-                const nombre = (f.cliente_nombre || 'Desconocido').toLowerCase();
-                if (filtro && !nombre.includes(filtro)) return;
+                const nombre = f.cliente_nombre && f.cliente_nombre !== 'undefined' ? f.cliente_nombre : 'Cliente Desconocido';
+                if (filtro && !nombre.toLowerCase().includes(filtro)) return;
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-white/5 transition border-b border-white/5';
@@ -2232,7 +2238,7 @@
 
                 tr.innerHTML = `
                     <td class="p-4 text-zinc-400 font-mono text-xs">${new Date(f.created_at || Date.now()).toLocaleDateString()}</td>
-                    <td class="p-4 font-bold text-white">${f.cliente_nombre}</td>
+                    <td class="p-4 font-bold text-white">${nombre}</td>
                     <td class="p-4">${itemsDesc}</td>
                     <td class="p-4 font-bold text-green-400">$${f.total}</td>
                     <td class="p-4 text-right flex justify-end gap-2">
@@ -2360,11 +2366,16 @@
         async function eliminarFactura(id) {
             if (!confirm('¿Eliminar esta factura permanentemente?')) return;
             try {
-                await fetch(`${SUPABASE_URL}/rest/v1/facturas?id=eq.${id}`, {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/facturas?id=eq.${id}`, {
                     method: 'DELETE',
                     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
                 });
-                syncFacturas();
+
+                if (!res.ok) {
+                    throw new Error(`Error ${res.status}: ${res.statusText}`);
+                }
+
+                await syncFacturas();
                 showToast('🗑️ Factura eliminada');
             } catch (e) {
                 console.error(e);
