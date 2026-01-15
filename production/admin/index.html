@@ -1036,7 +1036,7 @@
             const select = document.getElementById('turno-cliente');
             select.innerHTML = '<option value="">Seleccionar cliente...</option>';
             clientes.forEach(c => {
-                select.innerHTML += `<option value="${c.id}" data-nombre="${c.nombre}" data-moto="${c.matricula} - ${c.modelo}">${c.nombre} (${c.matricula})</option>`;
+                select.innerHTML += `<option value="${c.id}" data-nombre="${c.nombre}" data-telefono="${c.telefono}" data-moto="${c.matricula} - ${c.modelo}">${c.nombre} (${c.matricula})</option>`;
             });
             // Fecha por defecto: mañana
             const tomorrow = new Date();
@@ -1063,7 +1063,9 @@
             const selectedOption = document.querySelector(`#turno-cliente option[value="${clienteId}"]`);
 
             const turnoData = {
-                cliente: selectedOption ? selectedOption.dataset.nombre : 'Cliente Manual',
+                cliente_id: clienteId,
+                cliente_nombre: selectedOption ? selectedOption.dataset.nombre : 'Cliente Manual',
+                cliente_telefono: selectedOption ? (selectedOption.dataset.telefono || '') : '',
                 moto: selectedOption ? selectedOption.dataset.moto : 'Moto Manual',
                 servicio: formData.get('servicio'),
                 fecha: `${formData.get('fecha')} - ${formData.get('hora')}`,
