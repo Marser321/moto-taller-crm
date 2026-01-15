@@ -60,9 +60,9 @@ function initOnboarding() {
     }
 
     // Auto-start check
-    if (!localStorage.getItem('moto_tour_completed')) {
-        setTimeout(startTour, 1000);
-    }
+    // if (!localStorage.getItem('moto_tour_completed')) {
+    //     setTimeout(startTour, 1000);
+    // }
 }
 
 function startTour() {
