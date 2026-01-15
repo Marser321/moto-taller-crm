@@ -876,183 +876,183 @@
                         'bg-red-500 shadow-[0_0_5px_red]' : 'bg-green-500 shadow-[0_0_5px_lime]') : 'bg-zinc-800');
 
                     if (i < filledSegments) seg.style.transitionDelay = `${i * 20}ms`; container.appendChild(seg);
-                } if
-                    (kmRemaining <= 0) {
-                    document.getElementById('km-remaining').className = 'text-5xl font-black italic tracking-tighter text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.5)] animate-pulse'
-                        ;
+                }
+
+                if (kmRemaining <= 0) {
+                    document.getElementById('km-remaining').className = 'text-5xl font-black italic tracking-tighter text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.5)] animate-pulse';
                 } else {
-                    document.getElementById('km-remaining').className = 'text-5xl font-black italic tracking-tighter text-white'
-                        ;
+                    document.getElementById('km-remaining').className = 'text-5xl font-black italic tracking-tighter text-white';
                 }
             }
+        }
 
-            // --- MODAL LOGIC --- 
-            function toggleKmModal(show) {
-                const modal = document.getElementById('km-modal');
-                const modalContent = document.getElementById('km-modal-content');
-                const input = document.getElementById('input-km');
-                if (show) {
-                    modal.classList.remove('hidden'); // Trigger
+        // --- MODAL LOGIC ---
+        function toggleKmModal(show) {
+            const modal = document.getElementById('km-modal');
+            const modalContent = document.getElementById('km-modal-content');
+            const input = document.getElementById('input-km');
+            if (show) {
+                modal.classList.remove('hidden'); // Trigger
                     reflow void modal.offsetWidth; modal.classList.remove('opacity-0', 'pointer-events-none');
-                    modalContent.classList.remove('translate-y-full'); modalContent.classList.add('sm:translate-y-10');
-                    if (cliente) input.value = cliente.km_current; setTimeout(() => input.focus(), 300);
-                }
-
-                else {
-                    modal.classList.add('opacity-0', 'pointer-events-none');
-                    modalContent.classList.add('translate-y-full');
-                    modalContent.classList.remove('sm:translate-y-10');
-                    setTimeout(() => modal.classList.add('hidden'), 300);
-                }
+                modalContent.classList.remove('translate-y-full'); modalContent.classList.add('sm:translate-y-10');
+                if (cliente) input.value = cliente.km_current; setTimeout(() => input.focus(), 300);
             }
 
-            async function saveKm() {
-                const newVal = parseInt(document.getElementById('input-km').value);
+            else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modalContent.classList.add('translate-y-full');
+                modalContent.classList.remove('sm:translate-y-10');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
 
-                if (newVal && newVal > 0 && cliente) {
-                    if (newVal < cliente.km_last_service) {
-                        alert('El kilometraje no puede ser menor al del último service.');
-                        return;
-                    }
+        async function saveKm() {
+            const newVal = parseInt(document.getElementById('input-km').value);
 
-                    // Optimistic UI Update
-                    cliente.km_current = newVal;
-                    renderApp();
-                    toggleKmModal(false);
-
-                    // Send to Supabase
-                    try {
-                        const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?telefono=eq.${cliente.telefono}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'apikey': SUPABASE_KEY,
-                                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                                'Content-Type': 'application/json',
-                                'Prefer': 'return=minimal'
-                            },
-                            body: JSON.stringify({ km_current: newVal })
-                        });
-
-                        if (!res.ok) throw new Error('Supabase Error');
-                        // Success confirmed
-                        localStorage.setItem('cliente_cache', JSON.stringify(cliente));
-
-                    } catch (e) {
-                        console.error("Save failed", e);
-                        alert("No se pudo guardar en la nube. Se guardó localmente.");
-                        localStorage.setItem('cliente_cache', JSON.stringify(cliente));
-                    }
-
-                } else {
-                    alert('Ingresa un valor válido');
+            if (newVal && newVal > 0 && cliente) {
+                if (newVal < cliente.km_last_service) {
+                    alert('El kilometraje no puede ser menor al del último service.');
+                    return;
                 }
+
+                // Optimistic UI Update
+                cliente.km_current = newVal;
+                renderApp();
+                toggleKmModal(false);
+
+                // Send to Supabase
+                try {
+                    const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?telefono=eq.${cliente.telefono}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify({ km_current: newVal })
+                    });
+
+                    if (!res.ok) throw new Error('Supabase Error');
+                    // Success confirmed
+                    localStorage.setItem('cliente_cache', JSON.stringify(cliente));
+
+                } catch (e) {
+                    console.error("Save failed", e);
+                    alert("No se pudo guardar en la nube. Se guardó localmente.");
+                    localStorage.setItem('cliente_cache', JSON.stringify(cliente));
+                }
+
+            } else {
+                alert('Ingresa un valor válido');
+            }
+        }
+
+        // --- MENU & NOTIFICATIONS --- 
+        function toggleMenu(show) {
+            const modal = document.getElementById('menu-modal');
+            const content = document.getElementById('menu-content'); if (show) {
+                modal.classList.remove('hidden'); setTimeout(() => content.classList.remove('-translate-x-full'),
+                    10);
             }
 
-            // --- MENU & NOTIFICATIONS --- 
-            function toggleMenu(show) {
-                const modal = document.getElementById('menu-modal');
-                const content = document.getElementById('menu-content'); if (show) {
-                    modal.classList.remove('hidden'); setTimeout(() => content.classList.remove('-translate-x-full'),
-                        10);
-                }
+            else {
+                content.classList.add('-translate-x-full');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
 
-                else {
-                    content.classList.add('-translate-x-full');
-                    setTimeout(() => modal.classList.add('hidden'), 300);
-                }
+        function toggleNotis(show) {
+            const modal = document.getElementById('noti-modal');
+            const content = document.getElementById('noti-content');
+
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => content.classList.remove('translate-x-full'), 10);
+                document.getElementById('noti-dot').classList.add('hidden');
             }
 
-            function toggleNotis(show) {
-                const modal = document.getElementById('noti-modal');
-                const content = document.getElementById('noti-content');
+            else {
+                content.classList.add('translate-x-full');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
 
-                if (show) {
-                    modal.classList.remove('hidden');
-                    setTimeout(() => content.classList.remove('translate-x-full'), 10);
-                    document.getElementById('noti-dot').classList.add('hidden');
-                }
+        function logout() {
+            if (confirm('¿Cerrar sesión?')) {
+                localStorage.removeItem('phone');
+                localStorage.removeItem('role');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userMoto');
+                window.location.href = '../login.html';
+            }
+        }
 
-                else {
-                    content.classList.add('translate-x-full');
-                    setTimeout(() => modal.classList.add('hidden'), 300);
-                }
+        function contactarSoporte() {
+            window.open('https://wa.me/59899123456?text=Hola, necesito ayuda con mi plan de Moto Taller.',
+                '_blank');
+        }
+
+        function scrollToMoto() {
+            const motoCard = document.getElementById('user-moto-card');
+            if (motoCard) motoCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set Active Nav Item
+            const path = window.location.pathname;
+            if (path.includes('index.html') || path.endsWith('/')) {
+                document.getElementById('nav-indicator-home')?.classList.remove('hidden');
+                const homeBtn = document.querySelector('button[onclick*="index.html"] span.material-symbols-outlined');
+                if (homeBtn) homeBtn.className = "material-symbols-outlined text-red-500 text-2xl transition-colors";
+            } else if (path.includes('appointments.html')) {
+                document.getElementById('nav-indicator-turnos')?.classList.remove('hidden');
+                const turnosBtn = document.querySelector('button[onclick*="appointments.html"] span.material-symbols-outlined');
+                if (turnosBtn) turnosBtn.className = "material-symbols-outlined text-red-500 text-2xl transition-colors";
             }
 
-            function logout() {
-                if (confirm('¿Cerrar sesión?')) {
-                    localStorage.removeItem('phone');
-                    localStorage.removeItem('role');
-                    localStorage.removeItem('userName');
-                    localStorage.removeItem('userMoto');
-                    window.location.href = '../login.html';
-                }
+            checkOnboarding();
+
+            // LOAD DATA
+            if (!cliente) {
+                await fetchClientData();
+            } else {
+                renderApp();
             }
 
-            function contactarSoporte() {
-                window.open('https://wa.me/59899123456?text=Hola, necesito ayuda con mi plan de Moto Taller.',
-                    '_blank');
-            }
+            // Notifications Logic
+            const turnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
+            const userName = localStorage.getItem('userName');
+            const myTurnos = turnos.filter(t => t.cliente === userName);
 
-            function scrollToMoto() {
-                const motoCard = document.getElementById('user-moto-card');
-                if (motoCard) motoCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            const confirmedMap = myTurnos.filter(t => t.estado === 'confirmed');
 
-            // --- INIT ---
-            document.addEventListener('DOMContentLoaded', async () => {
-                // Set Active Nav Item
-                const path = window.location.pathname;
-                if (path.includes('index.html') || path.endsWith('/')) {
-                    document.getElementById('nav-indicator-home')?.classList.remove('hidden');
-                    const homeBtn = document.querySelector('button[onclick*="index.html"] span.material-symbols-outlined');
-                    if (homeBtn) homeBtn.className = "material-symbols-outlined text-red-500 text-2xl transition-colors";
-                } else if (path.includes('appointments.html')) {
-                    document.getElementById('nav-indicator-turnos')?.classList.remove('hidden');
-                    const turnosBtn = document.querySelector('button[onclick*="appointments.html"] span.material-symbols-outlined');
-                    if (turnosBtn) turnosBtn.className = "material-symbols-outlined text-red-500 text-2xl transition-colors";
-                }
+            if (confirmedMap.length > 0) {
+                const dot = document.getElementById('noti-dot');
+                if (dot) dot.classList.remove('hidden');
 
-                checkOnboarding();
+                const list = document.getElementById('noti-list');
 
-                // LOAD DATA
-                if (!cliente) {
-                    await fetchClientData();
-                } else {
-                    renderApp();
-                }
-
-                // Notifications Logic
-                const turnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
-                const userName = localStorage.getItem('userName');
-                const myTurnos = turnos.filter(t => t.cliente === userName);
-
-                const confirmedMap = myTurnos.filter(t => t.estado === 'confirmed');
-
-                if (confirmedMap.length > 0) {
-                    const dot = document.getElementById('noti-dot');
-                    if (dot) dot.classList.remove('hidden');
-
-                    const list = document.getElementById('noti-list');
-
-                    if (list) {
-                        list.innerHTML = confirmedMap.map(t => ` <div
+                if (list) {
+                    list.innerHTML = confirmedMap.map(t => ` <div
                             class="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
                             <h4 class="font-bold text-sm text-green-400 mb-1">Turno Confirmado ✅</h4>
                             <p class="text-xs text-zinc-400">Tu turno para ${t.servicio} el ${t.fecha} ha sido
                                 confirmado.</p>
                         </div> `).join('');
-                    }
                 }
-            });
-
-            // Register Service Worker
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js')
-                        .then(registration => console.log('SW Registered'))
-                        .catch(err => console.log('SW Failed:', err));
-                });
             }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => console.log('SW Registered'))
+                    .catch(err => console.log('SW Failed:', err));
+            });
+        }
     </script>
 </body>
 
