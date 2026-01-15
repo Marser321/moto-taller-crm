@@ -1173,7 +1173,7 @@
                     await syncClientes(); // Refresh from DB
                 } catch (e) {
                     console.error('Error eliminando', e);
-                    alert('Error al eliminar cliente');
+                    alert('Error al eliminar cliente: ' + e.message);
                 }
             }
         }
@@ -2012,6 +2012,7 @@
                     renderKanban();
                 } catch (e) {
                     console.error('Error eliminando turno', e);
+                    alert('Error eliminando turno: ' + e.message);
                 }
             }
         }
@@ -2365,7 +2366,10 @@
                 });
                 syncFacturas();
                 showToast('🗑️ Factura eliminada');
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                alert('Error eliminando factura: ' + e.message);
+            }
         }
 
         function reenviarFactura(telefono, total, nombre, itemsText = null) {
