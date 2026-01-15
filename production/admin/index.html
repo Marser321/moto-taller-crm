@@ -76,6 +76,32 @@
             box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
         }
 
+        /* Override Tailwind Forms Plugin defaults that force white background */
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="number"],
+        input[type="email"],
+        select,
+        textarea,
+        .glass-input {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            background-image: none !important;
+            /* Remove Tailwind forms icons if needed */
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+
+        /* Fix Date Picker Icon Inversion for Dark Mode */
+        ::-webkit-calendar-picker-indicator {
+            filter: inversion(1);
+            cursor: pointer;
+        }
+
         .status-green {
             background: rgba(34, 197, 94, 0.1);
             color: #22c55e;
