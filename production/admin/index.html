@@ -216,11 +216,13 @@
                         <div class="mb-3">
                             <select id="campana-template" class="w-full glass-input p-2 rounded-lg text-xs"
                                 onchange="aplicarTemplate()">
-                                <option value="custom">Mensaje Personalizado</option>
-                                <option value="recordatorio">Recordatorio Vencimiento</option>
-                                <option value="oferta">Oferta Especial</option>
-                                <option value="horario">Cambio de Horario</option>
-                                <option value="cancelacion">Cancelación de Turno</option>
+                                <option value="custom">✏️ Mensaje Personalizado</option>
+                                <option value="recordatorio">⏰ Próximo a Vencer</option>
+                                <option value="vencido">🚨 Ya Vencido</option>
+                                <option value="oferta">🎁 Oferta Especial</option>
+                                <option value="service">🔧 Recordatorio de Service</option>
+                                <option value="horario">📅 Cambio de Horario</option>
+                                <option value="cancelacion">❌ Cancelación de Turno</option>
                             </select>
                         </div>
 
@@ -708,16 +710,84 @@
                     </div>
                     <div>
                         <label class="text-xs text-zinc-400">Total ($)</label>
-                        <input type="number" name="total"
-                            class="w-full glass-input p-3 rounded-lg mt-1 font-bold text-green-400" placeholder="0.00"
-                            required>
+                        <input type="number" name="total" id="factura-total"
+                            class="w-full glass-input p-3 rounded-lg mt-1 font-bold text-green-400 text-xl"
+                            placeholder="0" readonly>
                     </div>
                 </div>
 
+                <!-- SERVICIOS PREESTABLECIDOS -->
                 <div>
-                    <label class="text-xs text-zinc-400">Items / Descripción</label>
-                    <textarea name="items" class="w-full glass-input p-3 rounded-lg mt-1 h-32 resize-none"
-                        placeholder="- Cambio de Aceite: $1200&#10;- Filtro: $300" required></textarea>
+                    <label class="text-xs text-zinc-400 mb-2 block">Servicios Realizados</label>
+                    <div class="space-y-2 bg-black/30 p-4 rounded-xl border border-white/5" id="servicios-lista">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="servicio-check accent-red-500" data-nombre="Cambio de Aceite"
+                                onchange="calcularTotalFactura()">
+                            <span class="flex-1 text-sm">Cambio de Aceite</span>
+                            <input type="number"
+                                class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                placeholder="$" onchange="calcularTotalFactura()">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="servicio-check accent-red-500" data-nombre="Cambio de Filtro"
+                                onchange="calcularTotalFactura()">
+                            <span class="flex-1 text-sm">Cambio de Filtro</span>
+                            <input type="number"
+                                class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                placeholder="$" onchange="calcularTotalFactura()">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="servicio-check accent-red-500" data-nombre="Service Parcial"
+                                onchange="calcularTotalFactura()">
+                            <span class="flex-1 text-sm">Service Parcial</span>
+                            <input type="number"
+                                class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                placeholder="$" onchange="calcularTotalFactura()">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="servicio-check accent-red-500" data-nombre="Service Completo"
+                                onchange="calcularTotalFactura()">
+                            <span class="flex-1 text-sm">Service Completo</span>
+                            <input type="number"
+                                class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                placeholder="$" onchange="calcularTotalFactura()">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="servicio-check accent-red-500"
+                                data-nombre="Regulación de Frenos" onchange="calcularTotalFactura()">
+                            <span class="flex-1 text-sm">Regulación de Frenos</span>
+                            <input type="number"
+                                class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                placeholder="$" onchange="calcularTotalFactura()">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="servicio-check accent-red-500"
+                                data-nombre="Cambio de Cubiertas" onchange="calcularTotalFactura()">
+                            <span class="flex-1 text-sm">Cambio de Cubiertas</span>
+                            <input type="number"
+                                class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                placeholder="$" onchange="calcularTotalFactura()">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" class="servicio-check accent-red-500" data-nombre="Revisión General"
+                                onchange="calcularTotalFactura()">
+                            <span class="flex-1 text-sm">Revisión General</span>
+                            <input type="number"
+                                class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                placeholder="$" onchange="calcularTotalFactura()">
+                        </div>
+                        <div class="border-t border-white/10 pt-2 mt-2">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" class="servicio-check accent-red-500" data-nombre="otro"
+                                    id="check-otro" onchange="calcularTotalFactura()">
+                                <input type="text" id="otro-nombre" class="flex-1 glass-input p-2 rounded-lg text-sm"
+                                    placeholder="Otro (descripción)">
+                                <input type="number" id="otro-precio"
+                                    class="w-24 glass-input p-2 rounded-lg text-sm text-right servicio-precio"
+                                    placeholder="$" onchange="calcularTotalFactura()">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pt-4 flex justify-end gap-3">
@@ -1560,13 +1630,72 @@
             });
         }
 
-        // Templates Dictionary
+        // Templates Dictionary - Fede Moto Servicio
         const CAMPAIGN_TEMPLATES = {
             'custom': '',
-            'recordatorio': 'Hola {{nombre}} 👋, te recordamos que tu suscripción de Auxilio Mecánico vence el {{vencimiento}}. Renueva con nosotros para seguir protegido en la ruta! 🏍️',
-            'oferta': '¡Oferta Especial {{nombre}}! 🎁 Trae tu {{matricula}} esta semana y obtén un 20% de descuento en cambio de aceite. ¡Te esperamos!',
-            'horario': 'Aviso Importante: Nuestro taller cambiará de horario la próxima semana. Atenderemos de 10:00 a 19:00 hs. ¡Gracias!',
-            'cancelacion': 'Hola {{nombre}}, lamentamos informarte que por motivos de fuerza mayor debemos reprogramar turnos. Nos contactaremos contigo a la brevedad.'
+            'recordatorio': `¡Hola {{nombre}}! 👋
+
+Te recordamos que tu suscripción de *Auxilio Mecánico* está próxima a vencer el *{{vencimiento}}*.
+
+¡Renová ahora y seguí protegido en la ruta! 🏍️
+
+Cualquier consulta estamos a las órdenes.
+
+_Fede Moto Servicio - Santa Teresa 834, Maldonado_`,
+            'vencido': `¡Hola {{nombre}}! 👋
+
+Tu suscripción de *Auxilio Mecánico* ha vencido. 🚨
+
+¡Te extramos! Renová hoy y volvé a estar cubierto con 3 auxilios anuales + km incluídos.
+
+📞 098 687 182 para más info.
+
+_Fede Moto Servicio - Lo que tu moto necesita_`,
+            'oferta': `¡Hola {{nombre}}! 🎉
+
+*OFERTA ESPECIAL* para vos esta semana:
+
+🛢️ Cambio de aceite con 20% OFF
+🔧 Revisión gratuita incluida
+
+Traé tu *{{matricula}}* y aprovechá esta promo. ¡Te esperamos!
+
+📍 Santa Teresa 834, Maldonado
+
+_Fede Moto Servicio_`,
+            'service': `¡Hola {{nombre}}! 👋
+
+¿Sabías que tu moto *{{matricula}}* ya está para su próximo service? 🛠️
+
+Mantené tu moto en óptimas condiciones. Agenda tu turno con nosotros:
+
+📞 098 687 182
+📍 Santa Teresa 834, Maldonado
+
+¡Te esperamos! 🏍️
+
+_Fede Moto Servicio_`,
+            'horario': `¡Hola {{nombre}}! 👋
+
+*AVISO IMPORTANTE* ℹ️
+
+Queríamos avisarte que nuestro horario de atención cambia la próxima semana:
+
+🕒 Lunes a Viernes: 9:00 a 18:00 hs
+🕒 Sábados: 9:00 a 13:00 hs
+
+¡Gracias por tu comprensión!
+
+_Fede Moto Servicio_`,
+            'cancelacion': `¡Hola {{nombre}}! 👋
+
+Lamentamos informarte que por motivos de fuerza mayor debemos reprogramar algunos turnos.
+
+Nos estaremos comunicando a la brevedad para coordinar una nueva fecha.
+
+Pedimos disculpas por las molestias.
+
+_Fede Moto Servicio_`
         };
 
         function aplicarTemplate() {
@@ -1971,7 +2100,17 @@
         async function confirmarTurnoWsp(id, cliente, servicio, fecha, tel) {
             cambiarEstadoTurno(id, 'confirmed');
 
-            const msg = `Hola ${cliente} 👋! Te confirmamos tu turno para *${servicio}* el día *${fecha}*. Te esperamos en el taller! 🛠️`;
+            const msg = `¡Hola ${cliente}! 👋
+
+Te confirmamos tu turno en *Fede Moto Servicio*:
+
+🛠️ *Servicio:* ${servicio}
+📅 *Fecha:* ${fecha}
+📍 Santa Teresa 834, Maldonado
+
+¡Te esperamos! Cualquier consulta estamos a las órdenes. 🏍️
+
+_Fede Moto Servicio - Lo que tu moto necesita_`;
 
             const result = await enviarWhatsApp(tel, msg, 'confirmation');
             if (result.method === 'api') {
@@ -1982,7 +2121,17 @@
         async function completarTurnoWsp(id, cliente, servicio, tel) {
             cambiarEstadoTurno(id, 'completed');
 
-            const msg = `Hola ${cliente}! Tu moto ya está lista ✅ (*${servicio}*). Podes pasar a retirarla cuando quieras. Saludos!`;
+            const msg = `¡Hola ${cliente}! 😊
+
+Tu moto ya está lista ✅
+
+🛠️ *Trabajo realizado:* ${servicio}
+
+Podés pasar a retirarla cuando gustes por *Santa Teresa 834, Maldonado*.
+
+¡Muchas gracias por confiar en nosotros! Te esperamos pronto. 🏍️
+
+_Fede Moto Servicio - Lo que tu moto necesita_`;
 
             const result = await enviarWhatsApp(tel, msg, 'completion');
             if (result.method === 'api') {
@@ -2195,6 +2344,46 @@
         // ==========================================
         // GESTIÓN DE FACTURAS (NUEVO)
         // ==========================================
+
+        // Calcular total automáticamente desde checkboxes
+        function calcularTotalFactura() {
+            let total = 0;
+            const rows = document.querySelectorAll('#servicios-lista > div');
+            rows.forEach(row => {
+                const check = row.querySelector('.servicio-check');
+                const precio = row.querySelector('.servicio-precio');
+                if (check && check.checked && precio && precio.value) {
+                    total += parseFloat(precio.value) || 0;
+                }
+            });
+            document.getElementById('factura-total').value = total;
+        }
+
+        // Obtener servicios seleccionados
+        function getSelectedServices() {
+            const items = [];
+            const rows = document.querySelectorAll('#servicios-lista > div');
+            rows.forEach(row => {
+                const check = row.querySelector('.servicio-check');
+                const precio = row.querySelector('.servicio-precio');
+                const span = row.querySelector('span');
+
+                if (check && check.checked && precio && precio.value) {
+                    let nombre = check.dataset.nombre;
+                    // Para el campo "otro" usar el input de texto
+                    if (nombre === 'otro') {
+                        nombre = document.getElementById('otro-nombre').value || 'Otros';
+                    }
+                    items.push({
+                        servicio: nombre,
+                        precio: parseFloat(precio.value) || 0,
+                        cantidad: 1
+                    });
+                }
+            });
+            return items;
+        }
+
         let facturas = [];
 
         async function generarImagenFactura(factura) {

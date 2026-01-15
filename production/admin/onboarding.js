@@ -1,48 +1,84 @@
 
 const TOUR_STEPS = [
     {
-        target: '#seccion-dashboard', // Puede ser el contenedor general si no hay un id específico visible
-        title: '👋 ¡Bienvenido Admin!',
-        text: 'Este es tu nuevo Panel de Control. Aquí podrás ver un resumen rápido de tus ingresos, turnos completados y estado de clientes.',
+        target: '#seccion-dashboard',
+        title: '👋 ¡Bienvenido a Fede Moto Servicio!',
+        text: 'Este es tu Panel de Control. Aquí ves un resumen de ingresos, turnos y estado de tus clientes. ¡Vamos a recorrer todas las funciones!',
         position: 'center',
         preAction: () => verDashboard()
     },
     {
-        target: '#dash-ingresos', // ID específico de la tarjeta
-        title: '💰 Tus Ingresos',
-        text: 'Visualiza el total facturado en el mes actual. Se actualiza automáticamente cada vez que generas una factura.',
+        target: '#dash-ingresos',
+        title: '💰 Ingresos del Mes',
+        text: 'Monitorea cuánto facturaste este mes. Se actualiza automáticamente cada vez que generas una factura.',
         position: 'bottom',
         preAction: () => verDashboard()
     },
     {
         target: 'aside nav',
-        title: '📂 Navegación',
-        text: 'Usa este menú para cambiar entre el Dashboard, la lista completa de Clientes y la gestión de Vencimientos.',
+        title: '📂 Menú de Navegación',
+        text: 'Desde aquí accedes a todas las secciones: Dashboard, lista de Clientes por estado, Gestión de Turnos y Facturas.',
+        position: 'right',
+        preAction: () => verDashboard()
+    },
+    {
+        target: '#nav-todos',
+        title: '👥 Lista de Clientes',
+        text: 'Aquí ves TODOS tus clientes registrados. Podés filtrar por estado: Por Vencer (amarillo) o Vencidos (rojo).',
         position: 'right',
         preAction: () => verDashboard()
     },
     {
         target: '#nav-turnos',
         title: '📅 Gestión de Turnos',
-        text: 'Vamos a ver el tablero de trabajo. Aquí es donde organizarás el día a día del taller.',
+        text: 'El corazón del taller. Aquí organizas el día a día con un tablero visual estilo Kanban.',
         position: 'right',
         preAction: () => { }
     },
     {
-        target: '#turnos-section', // El contenedor del kanban
+        target: '#turnos-section',
         title: '✅ Tablero Kanban',
-        text: 'Arrastra las tarjetas para cambiar el estado. De "Solicitados" a "Confirmados" y finalmente "Completados".',
+        text: 'Tres columnas: Solicitados → Confirmados → Completados. Los clientes solicitan, vos confirmás, y cuando terminás marcás como completado.',
         position: 'top',
         preAction: () => verSeccionTurnos()
     },
     {
-        target: 'button[onclick="abrirModalTurno()"]', // Selector del botón Nuevo Turno en Kanban
-        title: '➕ Nuevo Turno',
-        text: '¿Llegó alguien al taller? Crea un turno manualmente desde aquí sin necesidad de que el cliente use la app.',
+        target: 'button[onclick="abrirModalTurno()"]',
+        title: '➕ Crear Turno Manual',
+        text: '¿Llegó alguien al taller sin reservar? Creá un turno desde acá directamente, sin que el cliente use la app.',
         position: 'bottom',
         preAction: () => verSeccionTurnos()
+    },
+    {
+        target: '#btn-archived',
+        title: '📦 Ver Archivados',
+        text: 'Los turnos completados podés archivarlos para mantener limpio el tablero. Acá podés ver el historial de trabajos realizados.',
+        position: 'bottom',
+        preAction: () => verSeccionTurnos()
+    },
+    {
+        target: '#nav-facturas',
+        title: '🧾 Gestión de Facturas',
+        text: 'Generá facturas profesionales para tus clientes. Podés verlas, buscarlas y eliminarlas desde esta sección.',
+        position: 'right',
+        preAction: () => verSeccionTurnos()
+    },
+    {
+        target: 'button[onclick="abrirModalCampaña()"]',
+        title: '📢 Campañas WhatsApp',
+        text: 'Enviá mensajes masivos a tus clientes. Ideal para recordatorios de vencimiento, ofertas especiales o cambios de horario.',
+        position: 'bottom',
+        preAction: () => verDashboard()
+    },
+    {
+        target: '.fab-container',
+        title: '❓ Ayuda Siempre Disponible',
+        text: '¿Tenés dudas? Hacé clic acá para volver a ver este tutorial o contactar soporte por WhatsApp. ¡Éxitos con Fede Moto Servicio! 🏍️',
+        position: 'top',
+        preAction: () => verDashboard()
     }
 ];
+
 
 let currentStep = 0;
 
