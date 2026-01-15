@@ -1915,6 +1915,7 @@
                                 <span class="material-symbols-outlined text-xs">receipt_long</span> FACTURA
                             </button>
                             <button onclick="archivarTurno('${t.id}')" class="bg-zinc-600/20 text-zinc-400 hover:bg-zinc-600 hover:text-white px-2 rounded text-xs transition" title="Archivar">📦</button>
+                            <button onclick="eliminarTurno('${t.id}')" class="bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-2 rounded text-xs transition" title="Eliminar">🗑️</button>
                         </div>`;
                 }
 
@@ -2084,8 +2085,16 @@
 
         function toggleArchivedView() {
             showArchived = !showArchived;
+            const btn = document.getElementById('btn-archived');
+            if (showArchived) {
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">visibility_off</span> Ocultar Archivados';
+                btn.className = 'bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1 transition';
+            } else {
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm">inventory_2</span> Ver Archivados';
+                btn.className = 'bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1 transition';
+            }
             syncTurnos().then(() => renderKanban());
-            showToast(showArchived ? '📁 Mostrando archivados' : '📂 Ocultando archivados');
+            showToast(showArchived ? '📁 Mostrando archivados' : '📂 Vista normal');
         }
 
         // === FACTURAS ===
