@@ -127,48 +127,58 @@
 <body class="flex flex-col h-screen overflow-hidden">
 
     <!-- HEADER -->
-    <header class="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-black/60 backdrop-blur-md">
-        <div class="flex items-center gap-3">
-            <img src="../assets/logo.png" alt="Fede Moto Servicio" class="h-12 w-12 object-contain rounded-xl">
-            <div>
-                <h1 class="font-bold text-sm uppercase tracking-widest text-white">Fede <span class="text-red-500">Moto
+    <header
+        class="h-14 md:h-16 border-b border-white/5 flex items-center justify-between px-3 md:px-6 bg-black/60 backdrop-blur-md">
+        <div class="flex items-center gap-2 md:gap-3">
+            <!-- Mobile Menu Toggle -->
+            <button onclick="toggleMobileMenu()" class="lg:hidden text-zinc-400 hover:text-white p-1">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <img src="../assets/logo.png" alt="Fede Moto Servicio"
+                class="h-8 w-8 md:h-12 md:w-12 object-contain rounded-xl">
+            <div class="hidden sm:block">
+                <h1 class="font-bold text-xs md:text-sm uppercase tracking-widest text-white">Fede <span
+                        class="text-red-500">Moto
                         Servicio</span></h1>
                 <p class="text-[10px] text-zinc-500">Panel de Gestión</p>
             </div>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-1 md:gap-3 overflow-x-auto">
             <input type="file" id="input-csv" accept=".csv" class="hidden" onchange="importarCSV(this)">
             <button onclick="syncClientes()" id="btn-sync"
-                class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-blue-500/50"
+                class="bg-blue-600 hover:bg-blue-500 text-white p-2 md:px-3 md:py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-blue-500/50 flex-shrink-0"
                 title="Sincronizar con Nube">
                 <span class="material-symbols-outlined text-sm">cloud_sync</span>
             </button>
             <button onclick="abrirModalCampaña()"
-                class="bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-red-500/50 animate-pulse"
-                title="Difusión Masiva Manual">
-                <span class="material-symbols-outlined text-sm">campaign</span> CAMPAÑAS
+                class="bg-red-600 hover:bg-red-500 text-white p-2 md:px-3 md:py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-red-500/50 flex-shrink-0"
+                title="Campañas">
+                <span class="material-symbols-outlined text-sm">campaign</span><span
+                    class="hidden md:inline">CAMPAÑAS</span>
             </button>
             <button onclick="document.getElementById('input-csv').click()"
-                class="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-zinc-700"
+                class="hidden md:flex bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg font-bold text-xs items-center gap-2 transition border border-zinc-700"
                 title="Importar Excel/CSV">
                 <span class="material-symbols-outlined text-sm">upload_file</span> IMPORTAR
             </button>
             <button onclick="exportarCSV()"
-                class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition"
+                class="hidden md:flex bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-lg font-bold text-xs items-center gap-2 transition"
                 title="Exportar CSV">
                 📥 CSV
             </button>
             <button onclick="eliminarDuplicados()"
-                class="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition border border-red-500/30"
+                class="hidden lg:flex bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-3 py-2 rounded-lg font-bold text-xs items-center gap-2 transition border border-red-500/30"
                 title="Limpiar Duplicados">
                 <span class="material-symbols-outlined text-sm">cleaning_services</span> LIMPIAR
             </button>
             <button onclick="abrirModal()"
-                class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-900/30 transition">
-                <span class="material-symbols-outlined text-sm">person_add</span> NUEVO CLIENTE
+                class="bg-red-600 hover:bg-red-500 text-white p-2 md:px-4 md:py-2 rounded-lg font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-900/30 transition flex-shrink-0"
+                title="Nuevo Cliente">
+                <span class="material-symbols-outlined text-sm">person_add</span><span class="hidden md:inline">NUEVO
+                    CLIENTE</span>
             </button>
             <button onclick="localStorage.clear(); location.href='../login.html'"
-                class="text-zinc-500 hover:text-red-500 transition p-2">
+                class="text-zinc-500 hover:text-red-500 transition p-2 flex-shrink-0">
                 <span class="material-symbols-outlined">logout</span>
             </button>
         </div>
@@ -267,7 +277,51 @@
     <!-- MAIN -->
     <div class="flex flex-1 overflow-hidden">
 
-        <!-- SIDEBAR -->
+        <!-- MOBILE SIDEBAR OVERLAY -->
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 z-40 bg-black/80 hidden lg:hidden"
+            onclick="toggleMobileMenu()"></div>
+        <aside id="mobile-sidebar"
+            class="fixed left-0 top-14 bottom-0 w-64 z-50 bg-zinc-900 border-r border-white/10 p-4 flex flex-col overflow-y-auto transform -translate-x-full transition-transform duration-300 lg:hidden">
+            <button onclick="toggleMobileMenu()" class="absolute top-2 right-2 text-zinc-400 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <nav class="space-y-2 mt-4">
+                <button onclick="verDashboard(); toggleMobileMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">dataset</span>
+                    <span class="font-medium text-sm">Dashboard</span>
+                </button>
+                <div class="h-px bg-white/5 my-2"></div>
+                <button onclick="filtrarVista('todos'); toggleMobileMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">people</span>
+                    <span class="font-medium text-sm">Todos</span>
+                </button>
+                <button onclick="filtrarVista('vencimientos'); toggleMobileMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">event_busy</span>
+                    <span class="font-medium text-sm">Por Vencer</span>
+                </button>
+                <button onclick="filtrarVista('vencidos'); toggleMobileMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">error</span>
+                    <span class="font-medium text-sm">Vencidos</span>
+                </button>
+                <div class="h-px bg-white/5 my-2"></div>
+                <button onclick="verSeccionTurnos(); toggleMobileMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">calendar_month</span>
+                    <span class="font-medium text-sm">Gestión Turnos</span>
+                </button>
+                <button onclick="verSeccionFacturas(); toggleMobileMenu()"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition">
+                    <span class="material-symbols-outlined text-xl">receipt_long</span>
+                    <span class="font-medium text-sm">Facturas</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- DESKTOP SIDEBAR -->
         <aside class="w-64 border-r border-white/5 bg-black/40 p-4 hidden lg:flex flex-col overflow-y-auto">
             <nav class="space-y-2">
                 <button onclick="verDashboard()" id="nav-dashboard"
@@ -325,8 +379,9 @@
             </div>
         </aside>
 
+
         <!-- CONTENT -->
-        <main class="flex-1 overflow-y-auto p-6 relative">
+        <main class="flex-1 overflow-y-auto p-3 md:p-6 relative">
 
             <!-- DASHBOARD -->
             <div id="seccion-dashboard" class="space-y-6 hidden">
@@ -1006,6 +1061,21 @@
     </div>
 
     <script>
+        // === MOBILE MENU ===
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+        }
+
         // === DATOS ===
         let clientes = [];
 
