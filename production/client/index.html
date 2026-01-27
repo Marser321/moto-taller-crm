@@ -867,14 +867,17 @@
                 container.innerHTML = '';
                 const segments = 20;
                 const filledSegments = Math.floor((kmProgressParam / 100) * segments);
+                const fragment = document.createDocumentFragment();
 
                 for (let i = 0; i < segments; i++) {
                     const seg = document.createElement('div');
                     seg.className = 'flex-1 h-full rounded-[1px] gauge-segment ' + (i < filledSegments ? (i > segments * 0.8 ?
                         'bg-red-500 shadow-[0_0_5px_red]' : 'bg-green-500 shadow-[0_0_5px_lime]') : 'bg-zinc-800');
 
-                    if (i < filledSegments) seg.style.transitionDelay = `${i * 20}ms`; container.appendChild(seg);
+                    if (i < filledSegments) seg.style.transitionDelay = `${i * 20}ms`;
+                    fragment.appendChild(seg);
                 }
+                container.appendChild(fragment);
 
                 if (kmRemaining <= 0) {
                     document.getElementById('km-remaining').className = 'text-5xl font-black italic tracking-tighter text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.5)] animate-pulse';
