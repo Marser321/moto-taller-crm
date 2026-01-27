@@ -2210,7 +2210,31 @@ _Fede Moto Servicio_`
 
                 if (res.success) {
                     colaEnvio[i].enviado = true;
-                    renderCola(); // Updates UI state
+
+                    // Optimization: Update specific row instead of full re-render
+                    const row = document.getElementById(`cola-item-${i}`);
+                    if (row) {
+                        // 1. Update Container Styles
+                        row.classList.remove('bg-zinc-800/50', 'border-white/5');
+                        row.classList.add('bg-green-500/10', 'border-green-500/30');
+
+                        // 2. Update Text Color
+                        const nameText = row.querySelector('p.font-bold');
+                        if (nameText) {
+                            nameText.classList.remove('text-white');
+                            nameText.classList.add('text-green-400');
+                        }
+
+                        // 3. Replace Button with Checkmark
+                        const btn = row.querySelector('button');
+                        if (btn) {
+                            btn.outerHTML = `<span class="material-symbols-outlined text-green-500 select-none">check_circle</span>`;
+                        }
+                    }
+
+                    // 4. Update Progress Counter
+                    const enviados = colaEnvio.filter(c => c.enviado).length;
+                    document.getElementById('progreso-envio').textContent = `${enviados}/${colaEnvio.length}`;
                 }
 
                 // Wait delay
