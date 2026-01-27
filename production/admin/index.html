@@ -2448,6 +2448,14 @@ _Fede Moto Servicio_`
             // Clear
             Object.values(cols).forEach(c => c.innerHTML = '');
 
+            // Optimization: Create client map for O(1) lookup
+            const clientMap = new Map();
+            for (const c of clientes) {
+                if (!clientMap.has(c.nombre)) {
+                    clientMap.set(c.nombre, c);
+                }
+            }
+
             turnos.forEach(t => {
                 const status = t.estado || 'requested'; // requested, confirmed, completed
                 if (counts[status] !== undefined) counts[status]++;
@@ -2457,7 +2465,7 @@ _Fede Moto Servicio_`
 
                 // Get client name and phone - use cliente_nombre from DB, fallback to lookup
                 const clientName = t.cliente_nombre || t.cliente || 'Cliente Desconocido';
-                const clientData = clientes.find(c => c.nombre === clientName) || { telefono: t.cliente_telefono || '59899123456' };
+                const clientData = clientMap.get(clientName) || { telefono: t.cliente_telefono || '59899123456' };
                 const tel = t.cliente_telefono || clientData.telefono;
 
                 let actions = '';
