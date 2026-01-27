@@ -515,11 +515,23 @@
 
             <!-- SECCIÓN TURNOS (KANBAN) -->
             <div id="turnos-section" class="hidden mt-6">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <h3 class="text-2xl font-bold flex items-center gap-2">
                         <span class="material-symbols-outlined text-red-500">calendar_month</span>
                         Gestión de Turnos
                     </h3>
+
+                    <!-- Pagination Controls -->
+                    <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded-lg border border-white/5">
+                        <button onclick="changePage(-1)" id="btn-prev" class="text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 p-1 transition" disabled>
+                            <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        </button>
+                        <span id="page-indicator" class="text-xs font-mono text-zinc-300 w-12 text-center">1 / 1</span>
+                        <button onclick="changePage(1)" id="btn-next" class="text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 p-1 transition" disabled>
+                            <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </button>
+                    </div>
+
                     <div class="flex gap-2">
                         <button onclick="toggleArchivedView()" id="btn-archived"
                             class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1 transition">
@@ -2149,17 +2161,19 @@ _Fede Moto Servicio_`
                     document.getElementById('dash-ingresos').textContent = `$${total.toLocaleString('es-UY')}`;
                 }
 
-                // Turnos Completados
-                const resTurnos = await fetch(`${SUPABASE_URL}/rest/v1/turnos?estado=eq.completed&fecha=like.${months[now.getMonth()]}&select=count`, {
-                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Range': '0-0' }
+                // Turnos Completados (Este Mes)
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+                const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+
+                const resTurnos = await fetch(`${SUPABASE_URL}/rest/v1/turnos?estado=eq.completed&created_at=gte.${startOfMonth}&created_at=lt.${startOfNextMonth}&select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Range': '0-0', 'Prefer': 'count=exact' }
                 });
-                // Note: simple text match for month in date string might be tricky if format changes, 
-                // but our current format is "15 Ene - 10:00". "Ene" matches.
-                // Better approach: filter by updated_at or created_at if we had complete timestamps on turnos.
-                // For now, let's just count completed turnos in general or try to filter client-side if needed.
-                // Let's rely on kanban sync
-                const completedCount = turnos.filter(t => t.estado === 'completed').length;
-                document.getElementById('dash-turnos').textContent = completedCount;
+
+                if (resTurnos.ok) {
+                    const countHeader = resTurnos.headers.get('content-range');
+                    const count = countHeader ? (countHeader.split('/')[1] === '*' ? 0 : parseInt(countHeader.split('/')[1])) : 0;
+                    document.getElementById('dash-turnos').textContent = count;
+                }
 
                 // Activity Feed
                 const activityContainer = document.getElementById('dash-activity');
@@ -2445,23 +2459,79 @@ _Fede Moto Servicio - Lo que tu moto necesita_`;
 
         // Sync Turnos with Supabase (filter out archived)
         let showArchived = false; // Toggle to view archived
-        async function syncTurnos() {
+
+        // PAGINATION CONFIG
+        let currentPage = 1;
+        const pageSize = 20;
+        let totalCompleted = 0;
+
+        async function syncTurnos(page = 1) {
             try {
-                const filter = showArchived ? '' : '&archived=eq.false';
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos?select=*&order=created_at.desc${filter}`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                currentPage = page;
+                const baseFilter = showArchived ? '' : '&archived=eq.false';
+
+                // 1. Active Turnos (Requested + Confirmed) - FETCH ALL (Important to see all pending work)
+                const queryActive = `?select=*&estado=in.(requested,confirmed)${baseFilter}&order=created_at.desc`;
+
+                // 2. Completed Turnos - PAGINATED (History can be large)
+                const from = (page - 1) * pageSize;
+                const to = from + pageSize - 1;
+
+                const queryCompleted = `?select=*&estado=eq.completed${baseFilter}&order=created_at.desc`;
+
+                const [resActive, resCompleted] = await Promise.all([
+                    fetch(`${SUPABASE_URL}/rest/v1/turnos${queryActive}`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }),
+                    fetch(`${SUPABASE_URL}/rest/v1/turnos${queryCompleted}`, {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Range': `${from}-${to}`,
+                            'Prefer': 'count=exact'
+                        }
+                    })
+                ]);
+
+                if (resActive.ok && resCompleted.ok) {
+                    const activeData = await resActive.json();
+                    const completedData = await resCompleted.json();
+
+                    // Update total count for pagination
+                    const contentRange = resCompleted.headers.get('content-range');
+                    if (contentRange) {
+                        const total = parseInt(contentRange.split('/')[1]);
+                        totalCompleted = isNaN(total) ? 0 : (total === '*' ? 0 : total);
                     }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data)) {
-                        turnos = data;
-                        console.log('Turnos sincronizados con Supabase:', turnos.length);
-                    }
+
+                    // Merge
+                    turnos = [...activeData, ...completedData];
+
+                    // Update UI Controls
+                    updatePaginationUI();
+
+                    console.log(`Turnos synced: ${activeData.length} active, ${completedData.length} completed (Page ${page}).`);
                 }
             } catch (e) { console.warn('Supabase offline for turnos', e); }
+        }
+
+        function changePage(delta) {
+            const maxPage = Math.max(1, Math.ceil(totalCompleted / pageSize));
+            const newPage = currentPage + delta;
+            if (newPage > 0 && newPage <= maxPage) {
+                syncTurnos(newPage).then(renderKanban);
+            }
+        }
+
+        function updatePaginationUI() {
+            const maxPage = Math.max(1, Math.ceil(totalCompleted / pageSize));
+            const indicator = document.getElementById('page-indicator');
+            const prev = document.getElementById('btn-prev');
+            const next = document.getElementById('btn-next');
+
+            if(indicator) indicator.textContent = `${currentPage} / ${maxPage}`;
+            if(prev) prev.disabled = currentPage === 1;
+            if(next) next.disabled = currentPage === maxPage;
         }
 
         async function archivarTurno(id) {
