@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark: Gauge Rendering</title>
+</head>
+<body>
+    <h1>Benchmark: Direct Append vs DocumentFragment</h1>
+    <div id="test-container" style="display:none;"></div>
+    <div id="results"></div>
+
+    <script>
+        const container = document.getElementById('test-container');
+        const segments = 20;
+        const kmProgressParam = 75; // Example value
+        const iterations = 10000;
+
+        function runDirectAppend() {
+            const start = performance.now();
+            for (let j = 0; j < iterations; j++) {
+                container.innerHTML = '';
+                const filledSegments = Math.floor((kmProgressParam / 100) * segments);
+
+                for (let i = 0; i < segments; i++) {
+                    const seg = document.createElement('div');
+                    seg.className = 'flex-1 h-full rounded-[1px] gauge-segment ' + (i < filledSegments ? (i > segments * 0.8 ?
+                        'bg-red-500 shadow-[0_0_5px_red]' : 'bg-green-500 shadow-[0_0_5px_lime]') : 'bg-zinc-800');
+
+                    if (i < filledSegments) seg.style.transitionDelay = `${i * 20}ms`;
+                    container.appendChild(seg);
+                }
+            }
+            return performance.now() - start;
+        }
+
+        function runDocumentFragment() {
+            const start = performance.now();
+            for (let j = 0; j < iterations; j++) {
+                container.innerHTML = '';
+                const filledSegments = Math.floor((kmProgressParam / 100) * segments);
+                const fragment = document.createDocumentFragment();
+
+                for (let i = 0; i < segments; i++) {
+                    const seg = document.createElement('div');
+                    seg.className = 'flex-1 h-full rounded-[1px] gauge-segment ' + (i < filledSegments ? (i > segments * 0.8 ?
+                        'bg-red-500 shadow-[0_0_5px_red]' : 'bg-green-500 shadow-[0_0_5px_lime]') : 'bg-zinc-800');
+
+                    if (i < filledSegments) seg.style.transitionDelay = `${i * 20}ms`;
+                    fragment.appendChild(seg);
+                }
+                container.appendChild(fragment);
+            }
+            return performance.now() - start;
+        }
+
+        setTimeout(() => {
+            const timeDirect = runDirectAppend();
+            const timeFragment = runDocumentFragment();
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <p>Iterations: ${iterations}</p>
+                <p>Direct Append Time: ${timeDirect.toFixed(2)}ms</p>
+                <p>DocumentFragment Time: ${timeFragment.toFixed(2)}ms</p>
+                <p>Improvement: ${((timeDirect - timeFragment) / timeDirect * 100).toFixed(2)}%</p>
+            `;
+        }, 100);
+    </script>
+</body>
+</html>
