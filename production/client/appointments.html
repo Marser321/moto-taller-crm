@@ -327,10 +327,19 @@
             return names[id] || 'Servicio General';
         }
 
+        let cachedTurnos = null;
+
+        function getCachedTurnos() {
+            if (cachedTurnos === null) {
+                cachedTurnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
+            }
+            return cachedTurnos;
+        }
+
         async function getBookedSlots(date) {
             // Need to fetch latest turnos to know what's booked
             // We can rely on local cache 'turnos_kanban' which should be synced on load
-            const turnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
+            const turnos = getCachedTurnos();
             const dateStr = `${date.getDate()} ${months[date.getMonth()]}`;
 
             return turnos
@@ -487,7 +496,7 @@
                 alert("Error de conexión. Se guardará localmente (Demo mode).");
 
                 // Local Fallback
-                const turnos = JSON.parse(localStorage.getItem('turnos_kanban') || '[]');
+                const turnos = getCachedTurnos();
                 turnos.push({ ...newTicket, id: 't_' + Date.now() });
                 localStorage.setItem('turnos_kanban', JSON.stringify(turnos));
 
@@ -507,6 +516,7 @@
                     const data = await res.json();
                     if (Array.isArray(data)) {
                         localStorage.setItem('turnos_kanban', JSON.stringify(data));
+                        cachedTurnos = data;
                     }
                 }
             } catch (e) { console.warn('Supabase offline, using local cache'); }
