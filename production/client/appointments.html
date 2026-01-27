@@ -379,8 +379,6 @@
 
             if (!selectedDate) return;
 
-            // small delay to simulate processing or allow async fetch if we needed it fresh
-            await new Promise(r => setTimeout(r, 200));
             container.innerHTML = '';
 
             const booked = await getBookedSlots(selectedDate);
