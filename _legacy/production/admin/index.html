@@ -515,11 +515,23 @@
 
             <!-- SECCIÓN TURNOS (KANBAN) -->
             <div id="turnos-section" class="hidden mt-6">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <h3 class="text-2xl font-bold flex items-center gap-2">
                         <span class="material-symbols-outlined text-red-500">calendar_month</span>
                         Gestión de Turnos
                     </h3>
+
+                    <!-- Pagination Controls -->
+                    <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded-lg border border-white/5">
+                        <button onclick="changePage(-1)" id="btn-prev" class="text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 p-1 transition" disabled>
+                            <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        </button>
+                        <span id="page-indicator" class="text-xs font-mono text-zinc-300 w-12 text-center">1 / 1</span>
+                        <button onclick="changePage(1)" id="btn-next" class="text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 p-1 transition" disabled>
+                            <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </button>
+                    </div>
+
                     <div class="flex gap-2">
                         <button onclick="toggleArchivedView()" id="btn-archived"
                             class="bg-zinc-700 hover:bg-zinc-600 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1 transition">
@@ -1077,27 +1089,77 @@
         }
 
         // === DATOS ===
-        let clientes = [];
+        let clientes = []; // Current Page Data
+        let allClientsSummary = []; // Lightweight list for dropdowns
 
-        async function syncClientes() {
+        const paginationState = {
+            page: 0,
+            limit: 10,
+            total: 0,
+            search: '',
+            filter: 'todos' // todos, vencimientos, vencidos
+        };
+
+        async function syncClientes(resetPage = false) {
+            if (resetPage) paginationState.page = 0;
+
             try {
                 // Notificar carga
                 const btnSync = document.getElementById('btn-sync');
                 if (btnSync) { btnSync.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span>'; }
 
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?select=*`, {
+                // Base Query
+                let query = `${SUPABASE_URL}/rest/v1/clientes?select=*`;
+                query += `&limit=${paginationState.limit}`;
+                query += `&offset=${paginationState.page * paginationState.limit}`;
+
+                // Server-side Filtering (Search)
+                if (paginationState.search) {
+                     const s = encodeURIComponent(`%${paginationState.search}%`);
+                     query += `&or=(nombre.ilike.${s},matricula.ilike.${s},telefono.ilike.${s})`;
+                }
+
+                // Server-side Filtering (Status)
+                const today = new Date().toISOString().split('T')[0];
+                if (paginationState.filter === 'vencimientos') {
+                    // 0 to 30 days
+                    const future = new Date();
+                    future.setDate(future.getDate() + 30);
+                    const futureStr = future.toISOString().split('T')[0];
+                    query += `&fecha_vencimiento=gte.${today}&fecha_vencimiento=lte.${futureStr}`;
+                } else if (paginationState.filter === 'vencidos') {
+                     query += `&fecha_vencimiento=lt.${today}`;
+                }
+
+                // Sorting (Optional, but good practice)
+                query += `&order=id.desc`;
+
+                const res = await fetch(query, {
                     headers: {
                         'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'count=exact'
                     }
                 });
 
                 if (res.ok) {
                     const data = await res.json();
+
+                    // Parse Total Count
+                    const contentRange = res.headers.get('content-range');
+                    if (contentRange) {
+                        const parts = contentRange.split('/');
+                        if (parts.length > 1) {
+                            paginationState.total = parseInt(parts[1]) || 0;
+                        }
+                    }
+
                     if (Array.isArray(data)) {
                         clientes = data;
                         renderTabla();
-                        console.log('Sincronizado con Supabase');
+                        renderPaginationControls();
+                        loadGlobalStats(); // Refresh stats separately
+                        console.log('Sincronizado con Supabase (Paginated)');
                     }
                 }
             } catch (e) {
@@ -1134,43 +1196,23 @@
             const vacio = document.getElementById('tabla-vacia');
             tbody.innerHTML = '';
 
-            // Stats
-            document.getElementById('stat-total').textContent = clientes.length;
+            // Note: Stats are now updated by loadGlobalStats()
 
-            let porVencer = 0, vencidos = 0, totalAuxilios = 0;
-            clientes.forEach(c => {
-                const dias = diasRestantes(c.fecha_vencimiento);
-                if (dias < 0) vencidos++;
-                else if (dias <= 30) porVencer++;
-                totalAuxilios += (c.auxilios_usados || 0);
-            });
-
-            document.getElementById('stat-vencer').textContent = porVencer;
-            document.getElementById('stat-vencidos').textContent = vencidos;
-            document.getElementById('stat-auxilios').textContent = totalAuxilios;
-
-            // Filtrar para vista
-            let datosVista = clientes.map((c, i) => ({ ...c, _index: i })); // Preservar indice original
-
-            if (vistaActual === 'vencimientos') {
-                datosVista = datosVista.filter(c => {
-                    const dias = diasRestantes(c.fecha_vencimiento);
-                    return dias >= 0 && dias <= 30;
-                });
-            } else if (vistaActual === 'vencidos') {
-                datosVista = datosVista.filter(c => diasRestantes(c.fecha_vencimiento) < 0);
-            }
+            // Server-side filter already applied to `clientes`
+            let datosVista = clientes;
 
             if (datosVista.length === 0) {
                 vacio.classList.remove('hidden');
-                if (clientes.length > 0) vacio.querySelector('p').textContent = 'No hay resultados en esta vista';
-                else vacio.querySelector('p').textContent = 'No hay clientes registrados';
+                vacio.querySelector('p').textContent = 'No hay resultados';
                 return;
             }
             vacio.classList.add('hidden');
 
-            datosVista.forEach(c => {
-                const i = c._index;
+            datosVista.forEach((c, index) => {
+                // Warning: index here is relative to page. If logic relies on absolute index for editing, we must pass ID.
+                // Current edit/delete functions take 'index'. We must update them to use ID or resolve index correctly.
+                // For now, let's keep index but be aware it maps to the 'clientes' array which is the current page.
+
                 const dias = diasRestantes(c.fecha_vencimiento);
                 const estado = getEstado(dias);
                 const auxiliosUsados = c.auxilios_usados || 0;
@@ -1218,16 +1260,16 @@
                             <button onclick="verHistorialCliente('${c.id}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white p-2 rounded-lg transition text-lg" title="Ver Historial">
                                 📊
                             </button>
-                            <button onclick="abrirModalAuxilio(${i})" class="bg-orange-600 hover:bg-orange-500 text-white p-2 rounded-lg transition shadow-lg shadow-orange-900/30" title="Registrar Auxilio">
+                            <button onclick="abrirModalAuxilio(${index})" class="bg-orange-600 hover:bg-orange-500 text-white p-2 rounded-lg transition shadow-lg shadow-orange-900/30" title="Registrar Auxilio">
                                 🚚
                             </button>
                             <button onclick="abrirWhatsApp('${c.telefono}','${c.nombre}')" class="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg transition shadow-lg shadow-emerald-900/30 text-lg" title="WhatsApp">
                                 📱
                             </button>
-                            <button onclick="editarCliente(${i})" class="bg-zinc-600/20 hover:bg-zinc-600 text-zinc-400 hover:text-white p-2 rounded-lg transition text-lg" title="Editar">
+                            <button onclick="editarCliente(${index})" class="bg-zinc-600/20 hover:bg-zinc-600 text-zinc-400 hover:text-white p-2 rounded-lg transition text-lg" title="Editar">
                                 ✏️
                             </button>
-                            <button onclick="eliminarCliente(${i})" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white p-2 rounded-lg transition text-lg" title="Eliminar">
+                            <button onclick="eliminarCliente(${index})" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white p-2 rounded-lg transition text-lg" title="Eliminar">
                                 🗑️
                             </button>
                         </div>
@@ -1235,6 +1277,98 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        // === PAGINATION UI & DATA FETCHING ===
+        function renderPaginationControls() {
+            let container = document.getElementById('pagination-controls');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'pagination-controls';
+                container.className = 'flex justify-between items-center px-4 py-3 border-t border-white/5 bg-black/40';
+                const tableSection = document.getElementById('seccion-clientes');
+                tableSection.appendChild(container);
+            }
+
+            const { page, limit, total } = paginationState;
+            const start = page * limit + 1;
+            const end = Math.min((page + 1) * limit, total);
+            const totalPages = Math.ceil(total / limit);
+
+            container.innerHTML = `
+                <div class="text-xs text-zinc-500">
+                    Mostrando <span class="text-white font-bold">${total > 0 ? start : 0}</span> a <span class="text-white font-bold">${end}</span> de <span class="text-white font-bold">${total}</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="changePage(-1)" ${page === 0 ? 'disabled' : ''} class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-bold transition">
+                        ANTERIOR
+                    </button>
+                    <span class="px-2 py-1 text-xs text-zinc-400">Pág ${page + 1} de ${totalPages || 1}</span>
+                    <button onclick="changePage(1)" ${end >= total ? 'disabled' : ''} class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-bold transition">
+                        SIGUIENTE
+                    </button>
+                </div>
+            `;
+        }
+
+        function changePage(delta) {
+            paginationState.page += delta;
+            syncClientes(false);
+        }
+
+        async function loadGlobalStats() {
+             try {
+                // 1. Total Count
+                const resTotal = await fetch(`${SUPABASE_URL}/rest/v1/clientes?select=*&limit=1`, {
+                    method: 'HEAD',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact' }
+                });
+                const total = resTotal.headers.get('content-range')?.split('/')[1] || 0;
+                document.getElementById('stat-total').textContent = total;
+
+                // 2. Por Vencer (30 days)
+                const today = new Date().toISOString().split('T')[0];
+                const future = new Date();
+                future.setDate(future.getDate() + 30);
+                const futureStr = future.toISOString().split('T')[0];
+
+                const resVencer = await fetch(`${SUPABASE_URL}/rest/v1/clientes?fecha_vencimiento=gte.${today}&fecha_vencimiento=lte.${futureStr}&limit=1`, {
+                    method: 'HEAD',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact' }
+                });
+                const vencer = resVencer.headers.get('content-range')?.split('/')[1] || 0;
+                document.getElementById('stat-vencer').textContent = vencer;
+
+                // 3. Vencidos
+                const resVencidos = await fetch(`${SUPABASE_URL}/rest/v1/clientes?fecha_vencimiento=lt.${today}&limit=1`, {
+                    method: 'HEAD',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact' }
+                });
+                const vencidos = resVencidos.headers.get('content-range')?.split('/')[1] || 0;
+                document.getElementById('stat-vencidos').textContent = vencidos;
+
+                // 4. Auxilios Usados (Sum)
+                const resAux = await fetch(`${SUPABASE_URL}/rest/v1/clientes?select=auxilios_usados`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (resAux.ok) {
+                    const data = await resAux.json();
+                    const sum = data.reduce((acc, c) => acc + (c.auxilios_usados || 0), 0);
+                    document.getElementById('stat-auxilios').textContent = sum;
+                }
+             } catch(e) { console.warn('Error loading stats', e); }
+        }
+
+        async function loadClientsForSelects() {
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?select=id,nombre,telefono,matricula,modelo,fecha_vencimiento`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (res.ok) {
+                    allClientsSummary = await res.json();
+                    console.log('Summary loaded', allClientsSummary.length);
+                }
+            } catch(e) { console.warn('Error loading summary', e); }
         }
 
         // === ACCIONES ===
@@ -1247,10 +1381,14 @@
 
         // === TURNO MANUAL ===
         function abrirModalTurno() {
-            // Poblar select de clientes
+            // Poblar select de clientes (Use lightweight summary)
             const select = document.getElementById('turno-cliente');
             select.innerHTML = '<option value="">Seleccionar cliente...</option>';
-            clientes.forEach(c => {
+
+            // If summary not loaded, try to load or fallback to current page
+            const source = allClientsSummary.length > 0 ? allClientsSummary : clientes;
+
+            source.forEach(c => {
                 select.innerHTML += `<option value="${c.id}" data-nombre="${c.nombre}" data-telefono="${c.telefono}" data-moto="${c.matricula} - ${c.modelo}">${c.nombre} (${c.matricula})</option>`;
             });
             // Fecha por defecto: mañana
@@ -1556,13 +1694,15 @@
             }
         }
 
+        let searchTimeout;
         function filtrarTabla() {
-            const filtro = document.getElementById('buscar').value.toLowerCase();
-            const filas = document.querySelectorAll('#tabla-clientes tr');
-            filas.forEach(fila => {
-                const texto = fila.textContent.toLowerCase();
-                fila.style.display = texto.includes(filtro) ? '' : 'none';
-            });
+            const term = document.getElementById('buscar').value;
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                paginationState.search = term;
+                paginationState.page = 0;
+                syncClientes(true);
+            }, 600);
         }
 
         // === GUARDAR ===
@@ -1726,54 +1866,71 @@
         }
 
         // === EXPORTAR CSV ===
-        function exportarCSV() {
-            if (clientes.length === 0) {
-                alert('No hay clientes para exportar.');
-                return;
+        async function exportarCSV() {
+            // Fetch all data for export
+            try {
+                const res = await fetch(`${SUPABASE_URL}/rest/v1/clientes?select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!res.ok) throw new Error('Error fetching data');
+                const allData = await res.json();
+
+                if (allData.length === 0) {
+                    alert('No hay clientes para exportar.');
+                    return;
+                }
+
+                const headers = ['Nombre', 'Telefono', 'Matricula', 'Modelo', 'Fecha_Inicio', 'Fecha_Vencimiento', 'Auxilios_Total', 'Auxilios_Usados'];
+                const rows = allData.map(c => [
+                    c.nombre || '',
+                    c.telefono || '',
+                    c.matricula || '',
+                    c.modelo || '',
+                    c.fecha_inicio || '',
+                    c.fecha_vencimiento || '',
+                    c.auxilios_total || 3,
+                    c.auxilios_usados || 0
+                ]);
+
+                let csv = headers.join(',') + '\n';
+                rows.forEach(row => {
+                    csv += row.map(v => `"${v}"`).join(',') + '\n';
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `clientes_moto_taller_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+
+                alert('✅ Archivo CSV descargado!');
+            } catch (e) {
+                console.error(e);
+                alert('Error al exportar CSV');
             }
-
-            const headers = ['Nombre', 'Telefono', 'Matricula', 'Modelo', 'Fecha_Inicio', 'Fecha_Vencimiento', 'Auxilios_Total', 'Auxilios_Usados'];
-            const rows = clientes.map(c => [
-                c.nombre || '',
-                c.telefono || '',
-                c.matricula || '',
-                c.modelo || '',
-                c.fecha_inicio || '',
-                c.fecha_vencimiento || '',
-                c.auxilios_total || 3,
-                c.auxilios_usados || 0
-            ]);
-
-            let csv = headers.join(',') + '\n';
-            rows.forEach(row => {
-                csv += row.map(v => `"${v}"`).join(',') + '\n';
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `clientes_moto_taller_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-
-            alert('✅ Archivo CSV descargado!');
         }
 
         // === FILTROS SIDEBAR ===
-        let vistaActual = 'todos';
 
         function filtrarVista(vista) {
-            vistaActual = vista;
+            paginationState.filter = vista;
+            paginationState.page = 0;
+            paginationState.search = '';
+            const searchInput = document.getElementById('buscar');
+            if (searchInput) searchInput.value = '';
 
             // Show table section, hide dash/turnos
             document.getElementById('seccion-dashboard').classList.add('hidden');
             document.getElementById('seccion-clientes').classList.remove('hidden');
             document.getElementById('historial-section').classList.add('hidden');
             document.getElementById('turnos-section').classList.add('hidden');
+            const factSection = document.getElementById('facturas-section');
+            if (factSection) factSection.classList.add('hidden');
 
             // Actualizar UI botones nav (reset dashboard selection)
             updateNavHighlight(`nav-${vista}`);
 
-            renderTabla();
+            syncClientes(true);
         }
 
         // === IMPORTAR CSV ===
@@ -2053,7 +2210,31 @@ _Fede Moto Servicio_`
 
                 if (res.success) {
                     colaEnvio[i].enviado = true;
-                    renderCola(); // Updates UI state
+
+                    // Optimization: Update specific row instead of full re-render
+                    const row = document.getElementById(`cola-item-${i}`);
+                    if (row) {
+                        // 1. Update Container Styles
+                        row.classList.remove('bg-zinc-800/50', 'border-white/5');
+                        row.classList.add('bg-green-500/10', 'border-green-500/30');
+
+                        // 2. Update Text Color
+                        const nameText = row.querySelector('p.font-bold');
+                        if (nameText) {
+                            nameText.classList.remove('text-white');
+                            nameText.classList.add('text-green-400');
+                        }
+
+                        // 3. Replace Button with Checkmark
+                        const btn = row.querySelector('button');
+                        if (btn) {
+                            btn.outerHTML = `<span class="material-symbols-outlined text-green-500 select-none">check_circle</span>`;
+                        }
+                    }
+
+                    // 4. Update Progress Counter
+                    const enviados = colaEnvio.filter(c => c.enviado).length;
+                    document.getElementById('progreso-envio').textContent = `${enviados}/${colaEnvio.length}`;
                 }
 
                 // Wait delay
@@ -2121,14 +2302,16 @@ _Fede Moto Servicio_`
         // === DASHBOARD ===
         async function loadDashboardStats() {
             const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            // Stats from memory/cache first for speed
-            const activeClients = clientes.filter(c => {
+            // Stats from memory/cache first for speed (Use summary if available)
+            const source = allClientsSummary.length > 0 ? allClientsSummary : clientes;
+
+            const activeClients = source.filter(c => {
                 const dias = diasRestantes(c.fecha_vencimiento);
                 return getEstado(dias).texto === 'Activo';
             }).length;
             document.getElementById('dash-clientes').textContent = activeClients;
 
-            const nextExpire = clientes.filter(c => {
+            const nextExpire = source.filter(c => {
                 const dias = diasRestantes(c.fecha_vencimiento);
                 return getEstado(dias).clase === 'status-yellow';
             }).length;
@@ -2149,17 +2332,19 @@ _Fede Moto Servicio_`
                     document.getElementById('dash-ingresos').textContent = `$${total.toLocaleString('es-UY')}`;
                 }
 
-                // Turnos Completados
-                const resTurnos = await fetch(`${SUPABASE_URL}/rest/v1/turnos?estado=eq.completed&fecha=like.${months[now.getMonth()]}&select=count`, {
-                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Range': '0-0' }
+                // Turnos Completados (Este Mes)
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+                const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+
+                const resTurnos = await fetch(`${SUPABASE_URL}/rest/v1/turnos?estado=eq.completed&created_at=gte.${startOfMonth}&created_at=lt.${startOfNextMonth}&select=*`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Range': '0-0', 'Prefer': 'count=exact' }
                 });
-                // Note: simple text match for month in date string might be tricky if format changes, 
-                // but our current format is "15 Ene - 10:00". "Ene" matches.
-                // Better approach: filter by updated_at or created_at if we had complete timestamps on turnos.
-                // For now, let's just count completed turnos in general or try to filter client-side if needed.
-                // Let's rely on kanban sync
-                const completedCount = turnos.filter(t => t.estado === 'completed').length;
-                document.getElementById('dash-turnos').textContent = completedCount;
+
+                if (resTurnos.ok) {
+                    const countHeader = resTurnos.headers.get('content-range');
+                    const count = countHeader ? (countHeader.split('/')[1] === '*' ? 0 : parseInt(countHeader.split('/')[1])) : 0;
+                    document.getElementById('dash-turnos').textContent = count;
+                }
 
                 // Activity Feed
                 const activityContainer = document.getElementById('dash-activity');
@@ -2263,6 +2448,14 @@ _Fede Moto Servicio_`
             // Clear
             Object.values(cols).forEach(c => c.innerHTML = '');
 
+            // Optimization: Create client map for O(1) lookup
+            const clientMap = new Map();
+            for (const c of clientes) {
+                if (!clientMap.has(c.nombre)) {
+                    clientMap.set(c.nombre, c);
+                }
+            }
+
             turnos.forEach(t => {
                 const status = t.estado || 'requested'; // requested, confirmed, completed
                 if (counts[status] !== undefined) counts[status]++;
@@ -2272,7 +2465,7 @@ _Fede Moto Servicio_`
 
                 // Get client name and phone - use cliente_nombre from DB, fallback to lookup
                 const clientName = t.cliente_nombre || t.cliente || 'Cliente Desconocido';
-                const clientData = clientes.find(c => c.nombre === clientName) || { telefono: t.cliente_telefono || '59899123456' };
+                const clientData = clientMap.get(clientName) || { telefono: t.cliente_telefono || '59899123456' };
                 const tel = t.cliente_telefono || clientData.telefono;
 
                 let actions = '';
@@ -2445,23 +2638,79 @@ _Fede Moto Servicio - Lo que tu moto necesita_`;
 
         // Sync Turnos with Supabase (filter out archived)
         let showArchived = false; // Toggle to view archived
-        async function syncTurnos() {
+
+        // PAGINATION CONFIG
+        let currentPage = 1;
+        const pageSize = 20;
+        let totalCompleted = 0;
+
+        async function syncTurnos(page = 1) {
             try {
-                const filter = showArchived ? '' : '&archived=eq.false';
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/turnos?select=*&order=created_at.desc${filter}`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                currentPage = page;
+                const baseFilter = showArchived ? '' : '&archived=eq.false';
+
+                // 1. Active Turnos (Requested + Confirmed) - FETCH ALL (Important to see all pending work)
+                const queryActive = `?select=*&estado=in.(requested,confirmed)${baseFilter}&order=created_at.desc`;
+
+                // 2. Completed Turnos - PAGINATED (History can be large)
+                const from = (page - 1) * pageSize;
+                const to = from + pageSize - 1;
+
+                const queryCompleted = `?select=*&estado=eq.completed${baseFilter}&order=created_at.desc`;
+
+                const [resActive, resCompleted] = await Promise.all([
+                    fetch(`${SUPABASE_URL}/rest/v1/turnos${queryActive}`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                    }),
+                    fetch(`${SUPABASE_URL}/rest/v1/turnos${queryCompleted}`, {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Range': `${from}-${to}`,
+                            'Prefer': 'count=exact'
+                        }
+                    })
+                ]);
+
+                if (resActive.ok && resCompleted.ok) {
+                    const activeData = await resActive.json();
+                    const completedData = await resCompleted.json();
+
+                    // Update total count for pagination
+                    const contentRange = resCompleted.headers.get('content-range');
+                    if (contentRange) {
+                        const total = parseInt(contentRange.split('/')[1]);
+                        totalCompleted = isNaN(total) ? 0 : (total === '*' ? 0 : total);
                     }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data)) {
-                        turnos = data;
-                        console.log('Turnos sincronizados con Supabase:', turnos.length);
-                    }
+
+                    // Merge
+                    turnos = [...activeData, ...completedData];
+
+                    // Update UI Controls
+                    updatePaginationUI();
+
+                    console.log(`Turnos synced: ${activeData.length} active, ${completedData.length} completed (Page ${page}).`);
                 }
             } catch (e) { console.warn('Supabase offline for turnos', e); }
+        }
+
+        function changePage(delta) {
+            const maxPage = Math.max(1, Math.ceil(totalCompleted / pageSize));
+            const newPage = currentPage + delta;
+            if (newPage > 0 && newPage <= maxPage) {
+                syncTurnos(newPage).then(renderKanban);
+            }
+        }
+
+        function updatePaginationUI() {
+            const maxPage = Math.max(1, Math.ceil(totalCompleted / pageSize));
+            const indicator = document.getElementById('page-indicator');
+            const prev = document.getElementById('btn-prev');
+            const next = document.getElementById('btn-next');
+
+            if(indicator) indicator.textContent = `${currentPage} / ${maxPage}`;
+            if(prev) prev.disabled = currentPage === 1;
+            if(next) next.disabled = currentPage === maxPage;
         }
 
         async function archivarTurno(id) {
@@ -2778,8 +3027,11 @@ _Fede Moto Servicio - Lo que tu moto necesita_`;
             // Populate select
             const select = document.getElementById('factura-cliente');
             select.innerHTML = '<option value="">Seleccionar cliente...</option>';
-            if (typeof clientes !== 'undefined') {
-                clientes.forEach(c => {
+
+            const source = allClientsSummary.length > 0 ? allClientsSummary : clientes;
+
+            if (typeof source !== 'undefined') {
+                source.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.nombre + '|' + c.telefono;
                     opt.textContent = `${c.nombre} (${c.telefono})`;
@@ -2904,6 +3156,7 @@ _Fede Moto Servicio - Lo que tu moto necesita_`;
         // INIT
         verDashboard(); // Start on Dashboard
         syncTurnos().then(() => renderKanban());
+        loadClientsForSelects(); // Preload dropdown data
         setTimeout(() => {
             syncClientes().then(() => loadDashboardStats());
             syncFacturas();
