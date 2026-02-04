@@ -17,11 +17,13 @@ export default function DashboardPage() {
     // Estado local para feedback inmediato
     const [loadingPanic, setLoadingPanic] = useState(false)
 
-    // Cliente Supabase
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    // Cliente Supabase seguro
+    const [supabase] = useState(() => {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        if (!url || !key) return null
+        return createBrowserClient(url, key)
+    })
 
     const handlePanic = async () => {
         setLoadingPanic(true)
@@ -33,6 +35,8 @@ export default function DashboardPage() {
                 const { latitude, longitude } = position.coords;
 
                 try {
+                    if (!supabase) throw new Error("Supabase no está configurado (Faltan variables de entorno)")
+
                     const { data, error } = await supabase.rpc('solicitar_auxilio', {
                         p_lat: latitude,
                         p_long: longitude
