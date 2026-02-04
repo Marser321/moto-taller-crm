@@ -5,18 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Zap, ShieldCheck, CheckCircle2, ArrowRight, Activity, Battery, Thermometer, AlertTriangle } from "lucide-react"
 import Link from "next/link"
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
+import { motion, useScroll, useTransform, AnimatePresence, Variants } from "framer-motion"
 import { useRef, useState, useEffect } from "react"
 import ScrollytellingContainer from "@/components/moto-viva/ScrollytellingContainer"
 import IgnitionButton from "@/components/ui/IgnitionButton"
 
 // Animaciones Variantes
-const fadeIn = {
+const fadeIn: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 }
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
 }
