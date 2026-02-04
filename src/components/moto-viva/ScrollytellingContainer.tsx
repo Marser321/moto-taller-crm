@@ -68,6 +68,7 @@ export default function ScrollytellingContainer() {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function MotoExplosionWrapper({ scrollYProgress }: { scrollYProgress: any }) {
     // This is a "dirty" bridge to force re-render on scroll for the canvas
     // In a prod app we'd trigger the canvas draw directly from the motion value change listener
@@ -78,6 +79,7 @@ function MotoExplosionWrapper({ scrollYProgress }: { scrollYProgress: any }) {
 
 
     const [progress, setProgress] = useState(0);
+    const [activeCard, setActiveCard] = useState<any>(0) // eslint-disable-line @typescript-eslint/no-explicit-any
     const [status, setStatus] = useState<{ oil: string, brakes: string }>({ oil: 'loading', brakes: 'loading' });
 
     // Fetch Moto Status on Mount
@@ -86,8 +88,8 @@ function MotoExplosionWrapper({ scrollYProgress }: { scrollYProgress: any }) {
             // We need a client-side instance
             const { createBrowserClient } = await import('@supabase/ssr');
             const supabase = createBrowserClient(
-                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
             );
 
             // Get user

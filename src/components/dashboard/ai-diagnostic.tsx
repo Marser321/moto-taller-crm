@@ -55,7 +55,7 @@ export function AIDiagnostic() {
                             <UploadCloud className="w-6 h-6 text-zinc-400 group-hover:text-purple-400" />
                         </div>
                         <p className="text-sm font-medium text-zinc-300 mb-1">
-                            "¿Qué ruido hace?"
+                            &quot;¿Qué ruido hace?&quot;
                         </p>
                         <p className="text-xs text-zinc-500">
                             Sube un video o audio del motor para un pre-diagnóstico con IA.
@@ -98,7 +98,7 @@ export function AIDiagnostic() {
 
                         <div className="mt-4 flex gap-2">
                             <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs">
-                                AGENDAR REVISIÓN
+                                &quot;ANALIZANDO COMPORTAMIENTO DINÁMICO&quot;
                             </Button>
                         </div>
                     </motion.div>

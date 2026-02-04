@@ -1,0 +1,58 @@
+﻿
+> moto-taller-crm@0.1.0 lint
+> eslint
+
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\app\dashboard\page.tsx
+  10:10  warning  'Wrench' is defined but never used                 @typescript-eslint/no-unused-vars
+  10:18  warning  'MapPin' is defined but never used                 @typescript-eslint/no-unused-vars
+  10:36  warning  'Clock' is defined but never used                  @typescript-eslint/no-unused-vars
+  10:43  warning  'ArrowUpRight' is defined but never used           @typescript-eslint/no-unused-vars
+  11:10  warning  'motion' is defined but never used                 @typescript-eslint/no-unused-vars
+  13:10  warning  'Button' is defined but never used                 @typescript-eslint/no-unused-vars
+  18:12  warning  'loadingPanic' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\app\login\page.tsx
+  17:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\app\page.tsx
+    4:41  warning  'CardTitle' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+    4:52  warning  'CardDescription' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+    6:28  warning  'CheckCircle2' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    6:64  warning  'Battery' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+    6:73  warning  'Thermometer' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+    8:18  warning  'useScroll' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+    8:29  warning  'useTransform' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    8:43  warning  'AnimatePresence' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+    9:10  warning  'useRef' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   24:10  warning  'HeroSection' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  107:6   warning  React Hook useEffect has a missing dependency: 'scanPoints.length'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\components\dashboard\ai-diagnostic.tsx
+  5:23  warning  'Mic' is defined but never used        @typescript-eslint/no-unused-vars
+  5:28  warning  'Video' is defined but never used      @typescript-eslint/no-unused-vars
+  5:35  warning  'FileAudio' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\components\moto-viva\MotoHealthMonitor.tsx
+    6:7   warning  'FRAME_COUNT' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   93:13  warning  'currentOpacity' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  103:11  warning  'isOilOptimal' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  107:11  warning  'isBrakesOptimal' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\components\moto-viva\ScrollytellingContainer.tsx
+  16:11  warning  'progress' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  82:12  warning  'activeCard' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  82:24  warning  'setActiveCard' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\components\ui\IgnitionButton.tsx
+   3:28  warning  'useEffect' is defined but never used                 @typescript-eslint/no-unused-vars
+   9:12  warning  'audioContext' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   9:26  warning  'setAudioContext' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  14:11  warning  'holdTimeout' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\morer\OneDrive\Documentos\Fede\src\middleware.ts
+   1:35  warning  'CookieOptions' is defined but never used  @typescript-eslint/no-unused-vars
+  21:58  warning  'options' is defined but never used        @typescript-eslint/no-unused-vars
+
+Ô£û 35 problems (0 errors, 35 warnings)
+

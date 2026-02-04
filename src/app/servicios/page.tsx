@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { GlassHeader } from "@/components/ui/glass-card"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
@@ -30,7 +31,7 @@ const servicios = [
         descripcion: "Service de barrales, cambio de retenes y aceite. Configuración de SAG para pista o calle.",
         imagen: "/images/yamaha-hero.jpg",
         categoria: "PERFORMANCE"
-    }
+    },
 ]
 
 export default function ServicesPage() {
@@ -40,7 +41,7 @@ export default function ServicesPage() {
                 <div className="container mx-auto px-4 flex justify-between items-center h-16">
                     <span className="font-black italic text-xl tracking-tighter">MOTO TALLER</span>
                     <nav className="hidden md:flex gap-8 text-sm font-medium text-zinc-400">
-                        <a href="/" className="hover:text-white transition-colors">Inicio</a>
+                        <Link href="/" className="hover:text-white transition-colors">Inicio</Link>
                         <a href="#" className="text-white">Servicios</a>
                         <a href="/dashboard" className="hover:text-white transition-colors">Mi Taller</a>
                     </nav>

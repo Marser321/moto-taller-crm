@@ -320,7 +320,7 @@ function TestimonialsSection() {
         <div className="max-w-xl">
           <div className="flex text-red-600 mb-6 gap-2">★★★★★</div>
           <h2 className="text-4xl md:text-6xl font-black text-white mb-8 italic tracking-tighter leading-tight">
-            "DESCUBRIERON UNA FALLA EN EL ABS QUE NOS SALVÓ LA VIDA."
+            &quot;DESCUBRIERON UNA FALLA EN EL ABS QUE NOS SALVÓ LA VIDA.&quot;
           </h2>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center text-xl font-bold text-zinc-500">JM</div>
