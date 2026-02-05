@@ -91,6 +91,8 @@ function PartnersSection() {
 // STICKY SCROLLYTELLING SECTION
 function FeatureScanner() {
   const [activePoint, setActivePoint] = useState(0)
+  const [engineLoad, setEngineLoad] = useState(42)
+  const [intakeTemp, setIntakeTemp] = useState(48)
 
   // Puntos de escaneo simulados
   const scanPoints = [
@@ -100,11 +102,22 @@ function FeatureScanner() {
   ]
 
   useEffect(() => {
+    // Cycle active points
     const interval = setInterval(() => {
       setActivePoint(prev => (prev + 1) % scanPoints.length)
     }, 2000)
-    return () => clearInterval(interval)
-  }, [])
+
+    // Simulate live data fluctuating
+    const dataInterval = setInterval(() => {
+      setEngineLoad(prev => Math.min(100, Math.max(0, prev + (Math.random() - 0.5) * 10)))
+      setIntakeTemp(prev => Math.min(120, Math.max(20, prev + (Math.random() - 0.5) * 5)))
+    }, 800)
+
+    return () => {
+      clearInterval(interval)
+      clearInterval(dataInterval)
+    }
+  }, [scanPoints.length]) // Added dependency to fix lint warning
 
   const diagnostics = [
     {
@@ -139,65 +152,81 @@ function FeatureScanner() {
         <div className="flex flex-col lg:flex-row gap-0 lg:gap-16">
 
           {/* COLUMNA IZQUIERDA: VISUAL STICKY TIPO "HUD" */}
-          <div className="lg:w-3/5 h-[600px] lg:h-[80vh] lg:sticky lg:top-24 mb-12 lg:mb-0 bg-black/40 border border-zinc-800 rounded-3xl overflow-hidden backdrop-blur-sm relative group">
+          <div className="lg:w-3/5 h-[600px] lg:h-[80vh] lg:sticky lg:top-24 mb-12 lg:mb-0 bg-black/80 border border-zinc-800 rounded-3xl overflow-hidden backdrop-blur-sm relative group">
+
+            {/* Radar Sweep Effect */}
+            <div className="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_270deg,rgba(220,38,38,0.3)_360deg)]"
+              />
+            </div>
 
             {/* Marco HUD Decorativo */}
-            <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-red-600/50 rounded-tl-lg"></div>
-            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-red-600/50 rounded-tr-lg"></div>
-            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-red-600/50 rounded-bl-lg"></div>
-            <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-red-600/50 rounded-br-lg"></div>
+            <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-red-600/50 rounded-tl-lg z-20"></div>
+            <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-red-600/50 rounded-tr-lg z-20"></div>
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-red-600/50 rounded-bl-lg z-20"></div>
+            <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-red-600/50 rounded-br-lg z-20"></div>
 
             {/* Imagen Central Escaneada */}
-            <div className="absolute inset-0 flex items-center justify-center p-8">
+            <div className="absolute inset-0 flex items-center justify-center p-8 z-10">
               <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 transition={{ duration: 1 }}
                 className="relative w-full h-full max-w-2xl"
               >
-                <div className="absolute inset-0 bg-[url('/images/yamaha-r1.jpg')] bg-contain bg-center bg-no-repeat opacity-50 grayscale contrast-125"></div>
+                <div className="absolute inset-0 bg-[url('/images/yamaha-r1.jpg')] bg-contain bg-center bg-no-repeat opacity-60 grayscale contrast-125"></div>
                 {/* Grid overlay sobre la moto */}
                 <div className="absolute inset-0 bg-[linear-gradient(transparent_2px,black_3px)] bg-[size:100%_4px] opacity-20"></div>
 
                 {/* Puntos de Escaneo Animados */}
                 {scanPoints.map((p, i) => (
                   <div key={i} className="absolute flex items-center gap-2 group-hover:scale-110 transition-transform duration-500" style={{ top: p.top, left: p.left }}>
-                    <div className={`w-3 h-3 rounded-full ${activePoint === i ? 'bg-red-500 shadow-[0_0_15px_red]' : 'bg-red-900'} transition-colors duration-300`}></div>
+                    <div className={`w-3 h-3 rounded-full ${activePoint === i ? 'bg-red-500 shadow-[0_0_15px_red] scale-125' : 'bg-red-900'} transition-all duration-300`}></div>
                     <div className={`h-[1px] w-12 bg-red-500/50 ${activePoint === i ? 'opacity-100' : 'opacity-0'} transition-opacity`}></div>
-                    <span className={`text-[10px] font-mono text-red-400 bg-black/80 px-2 py-1 border border-red-900/50 ${activePoint === i ? 'opacity-100' : 'opacity-0'}`}>{p.label}</span>
+                    <span className={`text-[10px] font-mono text-red-400 bg-black/90 px-2 py-1 border border-red-900/50 backdrop-blur-md ${activePoint === i ? 'opacity-100' : 'opacity-50'} transition-opacity`}>{p.label}</span>
                   </div>
                 ))}
               </motion.div>
             </div>
 
             {/* Panel de Datos (Side Panel) */}
-            <div className="absolute top-8 right-8 w-64 space-y-4 hidden md:block">
-              <div className="bg-black/60 border border-zinc-800 p-4 rounded-xl backdrop-blur-md">
-                <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-1">Engine Load</div>
+            <div className="absolute top-8 right-8 w-64 space-y-4 hidden md:block z-30">
+              <div className="bg-black/80 border border-zinc-800 p-4 rounded-xl backdrop-blur-md hover:border-red-900/50 transition-colors">
+                <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-1 flex justify-between">
+                  <span>Engine Load</span>
+                  <span className="text-red-500 animate-pulse">LIVE</span>
+                </div>
                 <div className="h-1 w-full bg-zinc-800 rounded-full overflow-hidden mb-2">
-                  <motion.div animate={{ width: ["10%", "60%", "30%"] }} transition={{ duration: 3, repeat: Infinity }} className="h-full bg-red-600" />
+                  <motion.div
+                    animate={{ width: `${engineLoad}%` }}
+                    transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                    className="h-full bg-red-600"
+                  />
                 </div>
                 <div className="flex justify-between items-baseline">
-                  <span className="text-2xl font-mono font-bold text-white">42%</span>
+                  <span className="text-2xl font-mono font-bold text-white">{Math.round(engineLoad)}%</span>
                   <span className="text-xs text-green-500 font-mono">NORMAL</span>
                 </div>
               </div>
 
-              <div className="bg-black/60 border border-zinc-800 p-4 rounded-xl backdrop-blur-md">
+              <div className="bg-black/80 border border-zinc-800 p-4 rounded-xl backdrop-blur-md hover:border-red-900/50 transition-colors">
                 <div className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-1">Intake Temp</div>
                 <div className="flex justify-between items-baseline">
-                  <span className="text-2xl font-mono font-bold text-white">48°C</span>
+                  <span className="text-2xl font-mono font-bold text-white">{Math.round(intakeTemp)}°C</span>
                   <Activity className="w-4 h-4 text-zinc-500" />
                 </div>
               </div>
 
-              <div className="bg-black/60 border border-zinc-800 p-4 rounded-xl backdrop-blur-md overflow-hidden relative">
+              <div className="bg-black/80 border border-zinc-800 p-4 rounded-xl backdrop-blur-md overflow-hidden relative group/diag">
                 <div className="absolute inset-0 bg-red-900/10 animate-pulse"></div>
                 <div className="relative z-10 flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-red-500" />
+                  <ShieldCheck className="w-5 h-5 text-red-500 group-hover/diag:rotate-12 transition-transform" />
                   <div>
                     <div className="text-[10px] text-red-400 font-bold tracking-widest">DIAGNOSTIC</div>
-                    <div className="text-sm font-bold text-white">ACTIVE</div>
+                    <div className="text-sm font-bold text-white">ACTIVE SCAN</div>
                   </div>
                 </div>
               </div>
@@ -207,7 +236,7 @@ function FeatureScanner() {
             <motion.div
               animate={{ left: ["0%", "100%", "0%"] }}
               transition={{ duration: 8, ease: "linear", repeat: Infinity }}
-              className="absolute top-0 bottom-0 w-[2px] bg-red-600/50 shadow-[0_0_30px_red] z-20"
+              className="absolute top-0 bottom-0 w-[2px] bg-red-600/50 shadow-[0_0_30px_red] z-20 pointer-events-none"
             />
           </div>
 
