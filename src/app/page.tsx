@@ -88,8 +88,7 @@ function PartnersSection() {
   )
 }
 
-// STICKY SCROLLYTELLING SECTION
-// BENTO GRID DASHBOARD SECTION
+// BENTO GRID DASHBOARD SECTION - Updated with Floating Widgets
 function FeatureScanner() {
   const [activePoint, setActivePoint] = useState(0)
   const [engineLoad, setEngineLoad] = useState(42)
@@ -116,7 +115,7 @@ function FeatureScanner() {
       clearInterval(interval)
       clearInterval(dataInterval)
     }
-  }, [scanPoints.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scanPoints.length])
 
   const diagnostics = [
     {
@@ -163,7 +162,7 @@ function FeatureScanner() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="col-span-1 md:col-span-8 lg:col-span-8 h-[400px] md:h-[500px] bg-black/80 border border-zinc-800 rounded-3xl relative overflow-hidden group shadow-2xl"
+            className="col-span-1 md:col-span-8 lg:col-span-8 min-h-[450px] relative bg-black/80 border border-zinc-800 rounded-3xl overflow-hidden group shadow-2xl flex items-center justify-center p-8"
           >
             {/* Radar Sweep */}
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
@@ -175,22 +174,69 @@ function FeatureScanner() {
             </div>
 
             {/* Decoración Esquinas */}
-            <div className="absolute top-4 left-4 w-16 h-16 border-t-2 border-l-2 border-red-600/30 rounded-tl-xl z-20"></div>
-            <div className="absolute bottom-4 right-4 w-16 h-16 border-b-2 border-r-2 border-red-600/30 rounded-br-xl z-20"></div>
+            <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-red-600/50 rounded-tl-xl z-20"></div>
+            <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-red-600/50 rounded-br-xl z-20"></div>
+
+            {/* === MODULOS FLOTANTES (Lateral Cards) === */}
+            {/* Top Left: Oil Level */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="absolute top-8 left-8 md:top-12 md:left-12 bg-black/60 backdrop-blur-md border border-zinc-700/50 p-4 rounded-xl flex items-center gap-4 z-30 shadow-lg hover:border-green-500/50 transition-colors"
+            >
+              <div className="p-2 bg-green-900/20 rounded-lg text-green-500 border border-green-500/20">
+                <Thermometer className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase text-zinc-500 font-bold tracking-wider">Aceite</div>
+                <div className="text-white font-bold text-sm">NIVEL ÓPTIMO</div>
+              </div>
+            </motion.div>
+
+            {/* Bottom Left: Brakes */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="absolute bottom-8 left-8 md:bottom-12 md:left-12 bg-black/60 backdrop-blur-md border border-zinc-700/50 p-4 rounded-xl flex items-center gap-4 z-30 shadow-lg hover:border-yellow-500/50 transition-colors"
+            >
+              <div className="p-2 bg-yellow-900/20 rounded-lg text-yellow-500 border border-yellow-500/20">
+                <Activity className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase text-zinc-500 font-bold tracking-wider">Frenos</div>
+                <div className="text-white font-bold text-sm">95% VIDA ÚTIL</div>
+              </div>
+            </motion.div>
+
+            {/* Top Right: Next Service */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+              className="absolute top-8 right-8 md:top-12 md:right-12 bg-black/60 backdrop-blur-md border border-zinc-700/50 p-4 rounded-xl flex items-center gap-4 z-30 shadow-lg hover:border-red-500/50 transition-colors"
+            >
+              <div className="p-2 bg-red-900/20 rounded-lg text-red-500 border border-red-500/20">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase text-zinc-500 font-bold tracking-wider">Próximo Service</div>
+                <div className="text-white font-bold text-sm">EN 15 DÍAS</div>
+              </div>
+            </motion.div>
 
             {/* Moto */}
-            <div className="absolute inset-0 flex items-center justify-center p-8 z-10">
-              <div className="relative w-full h-full max-w-lg">
-                <div className="absolute inset-0 bg-[url('/images/yamaha-r1.jpg')] bg-contain bg-center bg-no-repeat opacity-90 contrast-125 drop-shadow-[0_0_30px_rgba(220,38,38,0.2)]"></div>
+            <div className="relative w-full h-full max-w-lg z-10 flex items-center justify-center">
+              <div className="absolute inset-0 bg-[url('/images/yamaha-r1.jpg')] bg-contain bg-center bg-no-repeat opacity-90 contrast-125 drop-shadow-[0_0_30px_rgba(220,38,38,0.2)] scale-90 md:scale-100"></div>
 
-                {/* Puntos Interactivos */}
-                {scanPoints.map((p, i) => (
-                  <div key={i} className="absolute flex items-center gap-2" style={{ top: p.top, left: p.left }}>
-                    <div className={`w-3 h-3 rounded-full ${activePoint === i ? 'bg-red-500 shadow-[0_0_15px_red] scale-150' : 'bg-red-900'} transition-all duration-300`}></div>
-                    <span className={`text-[10px] font-mono font-bold text-red-500 bg-black/90 px-2 py-1 border border-red-900/50 backdrop-blur-md ${activePoint === i ? 'opacity-100' : 'opacity-0'} transition-opacity`}>{p.label}</span>
-                  </div>
-                ))}
-              </div>
+              {/* Puntos Interactivos */}
+              {scanPoints.map((p, i) => (
+                <div key={i} className="absolute flex items-center gap-2" style={{ top: p.top, left: p.left }}>
+                  <div className={`w-3 h-3 rounded-full ${activePoint === i ? 'bg-red-500 shadow-[0_0_15px_red] scale-150' : 'bg-red-900'} transition-all duration-300`}></div>
+                  <span className={`text-[10px] font-mono font-bold text-red-500 bg-black/90 px-2 py-1 border border-red-900/50 backdrop-blur-md ${activePoint === i ? 'opacity-100' : 'opacity-0'} transition-opacity`}>{p.label}</span>
+                </div>
+              ))}
             </div>
           </motion.div>
 
@@ -247,18 +293,21 @@ function FeatureScanner() {
               </div>
             </motion.div>
 
-            {/* Call To Action Card */}
+            {/* Call To Action Card - Updated for Auxilio */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="h-[150px] bg-red-900/10 border border-red-900/30 rounded-3xl p-6 flex flex-col justify-center items-center text-center relative overflow-hidden group cursor-pointer hover:bg-red-900/20 transition-colors"
+              className="h-[150px] bg-gradient-to-br from-red-900/20 to-black border border-red-900/30 rounded-3xl p-6 flex flex-col justify-center items-center text-center relative overflow-hidden group cursor-pointer hover:bg-red-900/20 transition-colors"
             >
               <div className="relative z-10">
                 <Link href="/servicios">
-                  <h4 className="text-white font-black uppercase italic text-xl mb-2 group-hover:scale-105 transition-transform">Ver Specs</h4>
+                  <h4 className="text-white font-black uppercase italic text-xl mb-2 group-hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-red-500" />
+                    Auxilio 24/7
+                  </h4>
                   <p className="text-red-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                    Completo <ArrowRight className="w-4 h-4" />
+                    Solicitar Asistencia <ArrowRight className="w-4 h-4" />
                   </p>
                 </Link>
               </div>
