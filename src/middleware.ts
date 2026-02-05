@@ -35,13 +35,28 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Proteger rutas
+    // Proteger rutas de Dashboard
     if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
-        return NextResponse.redirect(new URL('/login', request.url)) // Redirigir a login si no hay usuario
+        return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Proteger Admin (Simple email check for now)
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+        if (!user) {
+            return NextResponse.redirect(new URL('/login', request.url))
+        }
+        // TODO: Move this to RBAC later. Hardcoded for safety now.
+        if (user.email !== 'fede@mototaller.com') {
+            return NextResponse.redirect(new URL('/dashboard', request.url))
+        }
     }
 
     // Redirigir si ya está logueado
     if (request.nextUrl.pathname.startsWith('/login') && user) {
+        // If it's Fede, go to Admin, else Client Dashboard
+        if (user.email === 'fede@mototaller.com') {
+            return NextResponse.redirect(new URL('/admin', request.url))
+        }
         return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
@@ -49,5 +64,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/login'],
+    matcher: ['/dashboard/:path*', '/login', '/admin/:path*'],
 }

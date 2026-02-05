@@ -3,25 +3,61 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
+import { createBrowserClient } from '@supabase/ssr'
 
 interface PanicButtonProps {
-    onActivate: () => void
+    onActivate?: () => void
 }
 
 export function PanicButton({ onActivate }: PanicButtonProps) {
     const [status, setStatus] = useState<"idle" | "activating" | "active">("idle")
 
+    // Cliente Supabase para el botón
+    const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+    )
+
     const handlePress = () => {
         if (status !== "idle") return
         setStatus("activating")
 
-        // Simulating activation delay
-        setTimeout(() => {
-            setStatus("active")
-            onActivate()
-            // Reset after a while
-            setTimeout(() => setStatus("idle"), 5000)
-        }, 1500)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const { latitude, longitude } = position.coords;
+
+                try {
+                    console.log("Enviando alerta de pánico...", { latitude, longitude })
+
+                    // Llamada RPC a Supabase
+                    const { data, error } = await supabase.rpc('solicitar_auxilio', {
+                        p_lat: latitude,
+                        p_long: longitude
+                    })
+
+                    if (error) throw error
+
+                    setStatus("active")
+                    if (onActivate) onActivate()
+
+                    // Reset visual despues de 5s
+                    setTimeout(() => setStatus("idle"), 5000)
+
+                } catch (err) {
+                    console.error("Error al enviar auxilio:", err)
+                    alert("Error al conectar con el centro de ayuda. Llama al 911.")
+                    setStatus("idle")
+                }
+
+            }, (error) => {
+                console.error("Error GPS:", error)
+                alert("Necesitamos tu ubicación para enviar ayuda.")
+                setStatus("idle")
+            })
+        } else {
+            alert("Tu dispositivo no soporta GPS.")
+            setStatus("idle")
+        }
     }
 
     return (
