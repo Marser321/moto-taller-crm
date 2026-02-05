@@ -177,9 +177,12 @@ function FeatureScanner() {
                 transition={{ duration: 1 }}
                 className="relative w-full h-full max-w-2xl"
               >
-                <div className="absolute inset-0 bg-[url('/images/yamaha-r1.jpg')] bg-contain bg-center bg-no-repeat opacity-60 grayscale contrast-125"></div>
-                {/* Grid overlay sobre la moto */}
-                <div className="absolute inset-0 bg-[linear-gradient(transparent_2px,black_3px)] bg-[size:100%_4px] opacity-20"></div>
+                {/* Moto principal más visible */}
+                <div className="absolute inset-0 bg-[url('/images/yamaha-r1.jpg')] bg-contain bg-center bg-no-repeat opacity-90 contrast-125 drop-shadow-[0_0_20px_rgba(220,38,38,0.3)]"></div>
+
+                {/* Grid overlay "Cibernético" más fuerte */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(220,38,38,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(220,38,38,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30"></div>
+                <div className="absolute inset-0 border-2 border-red-600/20 rounded-xl clip-path-polygon-[0_0,100%_0,100%_80%,90%_100%,0_100%]"></div>
 
                 {/* Puntos de Escaneo Animados */}
                 {scanPoints.map((p, i) => (
